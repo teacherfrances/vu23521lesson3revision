@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson Revision 3</title>
+
+<!-- ==========================================================================
+     LESSON REVISION 3
+     Read and Write Simple Transactional Texts (VU23521) - AMEP EAL Level 2
+     Single offline file. No external libraries. Embedded CSS and JS only.
+     Visual system matches Lesson Revision 1 and 2 so the series looks the same.
+
+     PART MAP
+       1. Sort the Cards    - swipe-style sorting (reply or not, safe or scam)
+       2. Build the Words   - letter tiles and word tiles
+       3. Tap the Part      - clickable hotspots on an SMS and a council notice
+       4. Find the Details  - tap-to-highlight lines in an email and an SMS
+       5. Choose the Word   - tap-the-gap with popover choices (grammar)
+       6. Text Message Live - SMS simulator (tone, intention, register)
+       7. Email Live        - email simulator (problems, structure, writing)
+       8. Your Results      - total score and simple feedback
+
+     All content is new. Nothing is copied from the class worksheet.
+     ========================================================================== -->
+<style>
+/* ==========================================================================
+   1. DESIGN TOKENS
+   Shared with Lesson Revision 1 and 2 so the series looks like one product.
+   Navy, teal and amber. Green and red are used only for right and wrong.
+   ========================================================================== */
+:root{
+  --navy:#0b2e4f;
+  --navy-dark:#08213a;
+  --teal:#0f7d7d;
+  --teal-light:#e3f3f3;
+  --amber:#c97a1a;
+  --amber-light:#fdf1e2;
+  --green:#1c7a3e;
+  --green-light:#e6f4ea;
+  --red:#b3261e;
+  --red-light:#fbeaea;
+  --grey:#5a6672;
+  --bg:#f6f2ea;
+  --card:#ffffff;
+  --card-border:#e3ddd0;
+  --focus:#1a73b8;
+  --tap:52px;
+}
+
+/* ==========================================================================
+   2. BASE
+   ========================================================================== */
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  font-family:"Segoe UI", Calibri, Arial, sans-serif;
+  background:var(--bg);
+  color:#1c1c1c;
+  font-size:19px;
+  line-height:1.5;
+}
+button{ font-family:inherit; cursor:pointer; }
+button:focus-visible, textarea:focus-visible, summary:focus-visible, input:focus-visible{
+  outline:3px solid var(--focus);
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; }
+}
+
+/* ==========================================================================
+   3. PAGE FRAME
+   ========================================================================== */
+header.top{
+  background:var(--navy);
+  color:#fff;
+  padding:22px 16px 18px;
+  text-align:center;
+}
+header.top h1{ margin:0 0 4px; font-size:1.8em; }
+header.top p{ margin:0; color:#cfe3f2; font-size:1em; }
+
+.progress-wrap{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:var(--bg);
+  border-bottom:1px solid var(--card-border);
+  padding:14px 16px;
+}
+.progress-label{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-weight:700;
+  margin-bottom:8px;
+  color:var(--navy);
+}
+.progress-bar-track{
+  background:#e7e0d2;
+  border-radius:999px;
+  height:16px;
+  overflow:hidden;
+}
+.progress-bar-fill{
+  background:linear-gradient(90deg, var(--teal), var(--amber));
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  transition:width 0.4s ease;
+}
+.dots{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  margin-top:14px;
+  flex-wrap:wrap;
+}
+.dot-btn{
+  min-height:46px;
+  min-width:110px;
+  border-radius:999px;
+  border:2px solid var(--navy);
+  background:#fff;
+  color:var(--navy);
+  font-size:0.92em;
+  font-weight:700;
+  padding:8px 16px;
+}
+.dot-btn.active{ background:var(--navy); color:#fff; }
+.dot-btn.done{ border-color:var(--green); }
+.dot-btn.done:not(.active){ color:var(--green); }
+
+main{
+  max-width:840px;
+  margin:0 auto;
+  padding:20px 14px 80px;
+}
+footer.credit{
+  text-align:center;
+  color:var(--grey);
+  font-size:0.85em;
+  padding:20px;
+}
+
+/* ==========================================================================
+   4. PARTS AND ITEM CARDS
+   ========================================================================== */
+.part-section{ display:none; }
+.part-section.visible{ display:block; }
+.part-header{
+  background:var(--navy);
+  color:#fff;
+  padding:16px 20px;
+  border-radius:18px;
+  margin-bottom:18px;
+}
+.part-header h2{ margin:0 0 6px; font-size:1.4em; }
+.part-header p{ margin:0; color:#d7e6f0; font-size:0.95em; }
+
+.instructions{
+  background:var(--teal-light);
+  border:1.5px solid var(--teal);
+  color:var(--navy);
+  border-radius:12px;
+  padding:12px 16px;
+  margin:0 0 18px;
+  font-size:0.98em;
+}
+.instructions strong{ color:var(--navy); }
+
+.live-counter{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  color:var(--navy);
+  font-weight:700;
+  padding:12px 16px;
+  border-radius:14px;
+  margin-bottom:18px;
+  text-align:center;
+  font-size:1.02em;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+
+.item-card{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.item-type-tag{
+  display:inline-block;
+  font-size:0.75em;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--amber);
+  background:var(--amber-light);
+  border:1.5px solid var(--amber);
+  border-radius:999px;
+  padding:3px 12px;
+  margin-bottom:12px;
+}
+.item-top-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:14px;
+}
+.prompt{
+  font-size:1.08em;
+  font-weight:600;
+  margin:0;
+  color:#1c1c1c;
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.item-number{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--navy);
+  color:#fff;
+  font-weight:800;
+  border-radius:10px;
+  width:36px;
+  height:36px;
+  margin-right:10px;
+  flex-shrink:0;
+}
+.hint-btn{
+  flex-shrink:0;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  border:2px solid var(--teal);
+  background:#fff;
+  color:var(--teal);
+  font-weight:800;
+  font-size:1.1em;
+  line-height:1;
+}
+.hint-box{
+  background:var(--teal-light);
+  border:1.5px solid var(--teal);
+  color:var(--navy);
+  border-radius:12px;
+  padding:10px 14px;
+  margin:0 0 14px;
+  font-size:0.95em;
+}
+.hint-box[hidden]{ display:none; }
+.clue{
+  background:var(--amber-light);
+  border:1.5px solid var(--amber);
+  border-radius:12px;
+  padding:10px 14px;
+  margin:0 0 14px;
+  font-size:0.98em;
+  color:#1c1c1c;
+}
+
+/* ==========================================================================
+   5. TEXT MOCKUPS (phone, email, notice)
+   ========================================================================== */
+.sms-phone{
+  background:#eef1ee;
+  border-radius:18px;
+  padding:0 0 14px;
+  margin-bottom:14px;
+  overflow:hidden;
+  border:1px solid #d7d9d4;
+}
+.sms-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:var(--navy);
+  color:#fff;
+  padding:14px 16px;
+}
+.sms-avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:800;
+  font-size:0.95em;
+  flex-shrink:0;
+  background:var(--teal);
+}
+.sms-avatar.biz{ background:var(--amber); }
+.sms-name{ font-weight:700; font-size:1.02em; }
+.sms-sub{ font-size:0.82em; color:#cfe3f2; }
+
+.sms-body{ padding:14px 14px 0; font-size:1em; }
+.email-meta{
+  background:#fff;
+  border-bottom:1px solid var(--card-border);
+  padding:10px 16px;
+  font-size:0.92em;
+}
+.email-meta div{ display:flex; gap:8px; padding:3px 0; }
+.email-meta .k{ font-weight:800; color:var(--navy); min-width:74px; }
+.notice-body{
+  background:var(--amber-light);
+  border-top:4px solid var(--amber);
+  padding:18px 16px;
+  text-align:center;
+  font-size:1em;
+}
+.notice-body .notice-title{ font-weight:800; color:var(--navy); }
+
+/* Chat bubbles */
+.thread{ padding:10px 0 0; display:flex; flex-direction:column; align-items:flex-start; }
+.sms-bubble{
+  background:#fff;
+  border-radius:16px;
+  padding:12px 14px;
+  max-width:88%;
+  font-size:1em;
+  line-height:1.45;
+  box-shadow:0 1px 2px rgba(0,0,0,0.08);
+  margin:4px 12px;
+  animation:bubbleIn 0.35s ease;
+}
+@keyframes bubbleIn{
+  from{ opacity:0; transform:translateY(8px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+.sms-bubble.from-me{ background:var(--teal-light); align-self:flex-end; }
+.sms-bubble.system-note{
+  text-align:center; font-style:italic; max-width:100%; margin:10px 12px;
+  background:var(--green-light); color:#164a28; box-shadow:none;
+  align-self:stretch;
+}
+.typing{
+  background:#fff; border-radius:16px; padding:14px 16px; margin:4px 12px;
+  width:auto; align-self:flex-start; display:flex; gap:5px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.08);
+}
+.typing span{ width:9px; height:9px; border-radius:50%; background:var(--grey); animation:blink 1.2s infinite; }
+.typing span:nth-child(2){ animation-delay:.2s; }
+.typing span:nth-child(3){ animation-delay:.4s; }
+@keyframes blink{ 0%,60%,100%{opacity:.25;} 30%{opacity:1;} }
+
+/* ==========================================================================
+   6. BUTTONS
+   ========================================================================== */
+.check-btn{
+  margin-top:10px;
+  min-height:52px;
+  padding:12px 22px;
+  border-radius:999px;
+  border:none;
+  background:var(--teal);
+  color:#fff;
+  font-weight:700;
+  font-size:1em;
+}
+.check-btn.ghost{ background:#fff; color:var(--navy); border:2px solid var(--navy); }
+.check-btn[disabled]{ background:#a9b6bd; color:#fff; cursor:default; }
+.check-btn.ghost[disabled]{ background:#fff; color:#a9b6bd; border-color:#cdd4d8; }
+.btn-row{ display:flex; flex-wrap:wrap; gap:12px; }
+
+.nav-buttons{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
+.nav-btn{
+  min-height:52px;
+  padding:12px 22px;
+  border-radius:999px;
+  border:none;
+  font-size:1.05em;
+  font-weight:700;
+  flex:1 1 auto;
+}
+.nav-btn.primary{ background:var(--teal); color:#fff; }
+.nav-btn.retry{ background:var(--amber); color:#fff; }
+.nav-btn.secondary{ background:#fff; color:var(--navy); border:2px solid var(--navy); }
+
+/* Reply options: pill chips, as in Lesson Revision 1 and 2 */
+.options{ display:flex; flex-direction:column; gap:12px; }
+.opt-btn{
+  text-align:left;
+  min-height:52px;
+  padding:12px 20px;
+  border-radius:999px;
+  border:2px solid var(--teal);
+  background:#fff;
+  color:var(--teal);
+  font-weight:700;
+  font-size:1em;
+}
+.opt-btn.correct{ background:var(--green-light); border-color:var(--green); color:#164a28; }
+.opt-btn.incorrect{ background:var(--red-light); border-color:var(--red); color:#7a1912; }
+.opt-btn[disabled]{ cursor:default; }
+
+/* ==========================================================================
+   7. FEEDBACK
+   ========================================================================== */
+.feedback{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:0.98em;
+  display:none;
+}
+.feedback.show{ display:block; }
+.feedback.good{ background:var(--green-light); border:2px solid var(--green); color:#164a28; }
+.feedback.bad{ background:var(--red-light); border:2px solid var(--red); color:#7a1912; }
+.feedback.info{ background:var(--teal-light); border:2px solid var(--teal); color:var(--navy); }
+.feedback .fb-head{ display:block; font-weight:800; margin-bottom:3px; }
+
+.q-line{
+  background:var(--teal-light);
+  border:1.5px solid var(--teal);
+  border-radius:12px;
+  padding:12px 14px;
+  margin:0 0 14px;
+  font-weight:600;
+  color:var(--navy);
+}
+.q-line .qn{ font-weight:800; }
+
+/* ==========================================================================
+   8. CLICKABLE HOTSPOTS (Part 3)
+   ========================================================================== */
+.hs-text{ line-height:2.1; }
+.hs{
+  display:inline;
+  border:none;
+  border-bottom:2px dashed var(--amber);
+  background:var(--amber-light);
+  padding:4px 6px;
+  border-radius:8px;
+  margin:2px 1px;
+  font-size:inherit;
+  line-height:inherit;
+  color:#1c1c1c;
+  text-align:left;
+}
+.hs.hit{ background:var(--green-light); border-bottom:2px solid var(--green); font-weight:700; color:#164a28; }
+.hs.miss{ background:var(--red-light); border-bottom:2px solid var(--red); color:#7a1912; }
+.hs.reveal{ background:var(--green-light); border-bottom:2px solid var(--green); font-weight:700; color:#164a28; }
+
+/* ==========================================================================
+   9. SWIPE SORTING (Part 1)
+   ========================================================================== */
+.deck-zone{ position:relative; height:250px; margin:6px 0; touch-action:pan-y; }
+.swipe-card{
+  position:absolute; inset:0;
+  background:#fff;
+  border:2px solid var(--navy);
+  border-radius:18px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.10);
+  display:flex; align-items:center; justify-content:center;
+  padding:26px 22px; text-align:center;
+  font-size:1.1em; font-weight:600; line-height:1.5;
+  user-select:none; -webkit-user-select:none;
+}
+.swipe-card.behind{ transform:scale(.94) translateY(12px); opacity:.5; z-index:1; border-color:var(--card-border); }
+.swipe-card.top{ z-index:3; cursor:grab; }
+.swipe-card .stamp{
+  position:absolute; top:14px;
+  font-size:0.9em; font-weight:800;
+  padding:6px 14px; border-radius:10px; border:3px solid;
+  opacity:0; text-transform:uppercase; letter-spacing:.05em;
+}
+.swipe-card .stamp.l{ left:14px; transform:rotate(-12deg); color:var(--navy); border-color:var(--navy); }
+.swipe-card .stamp.r{ right:14px; transform:rotate(12deg); color:var(--teal); border-color:var(--teal); }
+.swipe-card.done-ok{ border-color:var(--green); background:var(--green-light); }
+.swipe-card.done-no{ border-color:var(--red); background:var(--red-light); }
+.deck-empty{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--teal-light); border:2px dashed var(--teal); border-radius:18px;
+  font-weight:700; color:var(--navy); text-align:center; padding:20px;
+}
+.swipe-controls{ display:flex; gap:12px; margin-top:12px; }
+.swipe-controls .nav-btn{ flex:1; }
+.swipe-help{ text-align:center; color:var(--grey); font-size:0.88em; margin:10px 0 0; }
+
+/* ==========================================================================
+   10. TAP TO HIGHLIGHT (Part 4)
+   ========================================================================== */
+.hl-text{ display:flex; flex-direction:column; gap:8px; padding:14px; }
+.chunk{
+  display:block; width:100%; text-align:left;
+  background:#fff; border:2px solid #d7d2c4; border-radius:14px;
+  padding:10px 14px; font-size:1em; line-height:1.45; color:#1c1c1c;
+  min-height:46px; font-weight:600;
+}
+.chunk.on{ border-color:var(--amber); background:var(--amber-light); }
+.chunk.right{ border-color:var(--green); background:var(--green-light); color:#164a28; }
+.chunk.wrong{ border-color:var(--red); background:var(--red-light); color:#7a1912; }
+.chunk.missed{ border-color:var(--green); border-style:dashed; background:#fff; }
+.chunk[disabled]{ cursor:default; }
+
+/* ==========================================================================
+   11. TAP THE GAP (Part 5)
+   ========================================================================== */
+.gap-text{ line-height:2.3; padding:14px; font-size:1.02em; }
+.gap{
+  display:inline-block;
+  min-width:112px; min-height:46px;
+  background:#fff; border:2px solid var(--teal); border-radius:14px;
+  padding:8px 14px; font-weight:700; color:var(--teal);
+  vertical-align:middle; margin:2px 1px;
+}
+.gap.filled-ok{ border-color:var(--green); background:var(--green-light); color:#164a28; }
+.gap.filled-no{ border-color:var(--red); background:var(--red-light); color:#7a1912; }
+.gap .num{
+  display:inline-block; background:var(--navy); color:#fff; border-radius:6px;
+  font-size:0.7em; padding:1px 6px; margin-right:6px; vertical-align:2px;
+}
+.gap.filled-ok .num{ background:var(--green); }
+.gap.filled-no .num{ background:var(--red); }
+.gap[disabled]{ cursor:default; }
+
+.popover{
+  position:fixed; z-index:200; display:none;
+  background:#fff; border:2px solid var(--navy); border-radius:18px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.20);
+  padding:14px; width:min(300px, calc(100vw - 28px));
+}
+.popover.open{ display:block; }
+.popover .pop-title{
+  font-size:0.8em; font-weight:800; color:var(--navy);
+  text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;
+}
+.popover .pop-opt{
+  display:block; width:100%; text-align:center; min-height:56px;
+  background:#fff; border:2px solid #d7d2c4; border-radius:14px;
+  color:#1c1c1c; font-weight:700; font-size:1.05em; padding:12px; margin-bottom:10px;
+}
+.popover .pop-opt:hover{ border-color:var(--teal); background:var(--teal-light); }
+.popover .pop-close{
+  display:block; width:100%; min-height:46px; background:#fff;
+  border:2px solid var(--card-border); border-radius:999px; color:var(--grey); font-weight:700;
+}
+.pop-veil{ position:fixed; inset:0; background:rgba(11,46,79,.35); z-index:190; display:none; }
+.pop-veil.open{ display:block; }
+
+/* ==========================================================================
+   12. LETTER AND WORD TILES (Part 2)
+   ========================================================================== */
+.slots{
+  display:flex; flex-wrap:wrap; gap:8px; min-height:64px;
+  background:var(--teal-light); border:2px dashed var(--teal);
+  border-radius:14px; padding:10px; margin:0 0 14px; align-items:center;
+}
+.slots:empty::after{ content:"Tap the tiles below"; color:var(--grey); font-size:0.9em; padding-left:6px; }
+.tile-pool{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
+.tile{
+  min-width:52px; min-height:56px;
+  border-radius:14px; border:2px solid #d7d2c4; background:#fff;
+  color:#1c1c1c; font-weight:800; font-size:1.05em; text-transform:uppercase;
+  display:inline-flex; align-items:center; justify-content:center; padding:8px 12px;
+}
+.tile:hover:not([disabled]):not(.used){ border-color:var(--teal); background:var(--teal-light); }
+.tile.used{ opacity:.25; pointer-events:none; }
+.tile.word{ text-transform:none; font-size:1em; padding:8px 18px; }
+.tile.placed{ background:var(--navy); border-color:var(--navy); color:#fff; }
+.tile.ok{ background:var(--green-light); border-color:var(--green); color:#164a28; }
+.tile.no{ background:var(--red-light); border-color:var(--red); color:#7a1912; }
+.tile[disabled]{ cursor:default; }
+
+/* ==========================================================================
+   13. WRITING TASKS
+   ========================================================================== */
+textarea.answer-text{
+  width:100%;
+  font-size:1em;
+  padding:12px;
+  border-radius:14px;
+  border:2px solid #d7d2c4;
+  min-height:140px;
+  font-family:inherit;
+  line-height:1.5;
+  resize:vertical;
+}
+textarea.answer-text:focus{ border-color:var(--teal); }
+.check-list{ list-style:none; padding:0; margin:14px 0 0; }
+.check-list li{ margin-bottom:10px; }
+.check-list label{
+  display:flex; gap:12px; align-items:flex-start;
+  background:var(--teal-light); border:1.5px solid var(--teal);
+  border-radius:14px; padding:12px 14px; min-height:52px;
+  font-size:0.98em; cursor:pointer; color:var(--navy);
+}
+.check-list input{ width:24px; height:24px; flex:0 0 auto; margin-top:2px; accent-color:var(--teal); }
+.model{
+  display:none; margin-top:14px;
+  background:var(--amber-light); border:1.5px solid var(--amber);
+  border-radius:14px; padding:14px 16px;
+}
+.model.show{ display:block; }
+.model h4{ color:var(--amber); margin:0 0 8px; font-size:0.8em; text-transform:uppercase; letter-spacing:.04em; }
+.model p{ margin:0 0 8px; }
+.model p:last-child{ margin:0; }
+
+/* ==========================================================================
+   14. ANSWER KEY
+   ========================================================================== */
+details.key{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:18px;
+  margin:6px 0 20px;
+  overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+details.key summary{
+  list-style:none; cursor:pointer;
+  color:var(--navy); font-weight:800;
+  padding:16px 20px; min-height:52px;
+  display:flex; align-items:center; gap:10px;
+}
+details.key summary::-webkit-details-marker{ display:none; }
+details.key summary::after{ content:"+"; margin-left:auto; font-size:1.4em; line-height:1; color:var(--teal); }
+details.key[open] summary::after{ content:"\2212"; }
+details.key .key-body{ padding:0 20px 18px; border-top:1px solid var(--card-border); padding-top:16px; }
+details.key .key-body h4{ color:var(--navy); font-size:1em; margin:14px 0 6px; }
+details.key .key-body h4:first-child{ margin-top:0; }
+details.key .key-body ol{ margin:0 0 6px; padding-left:24px; }
+details.key .key-body li{ margin-bottom:6px; }
+details.key .key-body .note{ color:var(--grey); font-size:0.92em; font-style:italic; }
+
+/* ==========================================================================
+   15. RESULTS
+   ========================================================================== */
+.results-card{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:18px;
+  padding:24px;
+  text-align:center;
+  margin-bottom:20px;
+}
+.results-card h2{ color:var(--navy); margin-top:0; }
+.big-score{ font-size:2.4em; font-weight:800; color:var(--teal); margin:10px 0; }
+.band{ border-radius:14px; padding:16px; margin:16px 0; border:2px solid; text-align:left; }
+.band h3{ margin:0 0 8px; font-size:1.1em; }
+.band.b-top{ background:var(--green-light); border-color:var(--green); color:#164a28; }
+.band.b-good{ background:var(--teal-light); border-color:var(--teal); color:var(--navy); }
+.band.b-mid{ background:var(--amber-light); border-color:var(--amber); color:#1c1c1c; }
+.band.b-low{ background:var(--red-light); border-color:var(--red); color:#7a1912; }
+.breakdown{ text-align:left; max-width:520px; margin:16px auto; }
+.breakdown div{
+  display:flex; justify-content:space-between; gap:14px;
+  padding:8px 4px; border-bottom:1px solid #e2e8ec; font-weight:600;
+}
+.breakdown div span:last-child{ white-space:nowrap; color:var(--navy); font-weight:800; }
+.advice{ text-align:left; }
+.advice ul{ margin:8px 0; padding-left:22px; }
+
+/* ==========================================================================
+   16. RESPONSIVE
+   ========================================================================== */
+@media (max-width:480px){
+  body{ font-size:18px; }
+  header.top h1{ font-size:1.4em; }
+  .dot-btn{ min-width:100px; font-size:0.85em; }
+  .item-card{ padding:16px; }
+  .deck-zone{ height:270px; }
+}
+@media print{
+  .progress-wrap,.dots,.nav-buttons,.check-btn{ display:none !important; }
+  .part-section{ display:block !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Lesson Revision 3</h1>
+  <p>AMEP EAL Level 2: Read and Write Simple Transactional Texts (VU23521)</p>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span>Your progress</span>
+    <span id="progressText">0 of 0 answered</span>
+  </div>
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="dots" id="dotsRow" role="group" aria-label="Go to a part"></div>
+</div>
+
+<main>
+
+  <!-- ================= PART 1: SORT THE CARDS ================= -->
+  <section class="part-section visible" id="sec1" aria-labelledby="h-sec1">
+    <div class="part-header">
+      <h2 id="h-sec1">Part 1: Sort the Cards</h2>
+      <p>Why did they send it? Is it safe?</p>
+    </div>
+    <div class="instructions">
+      <strong>What to do:</strong> One card comes at a time.
+      Swipe the card left or right with your finger. You can also tap the two big buttons under the card.
+      Choose the correct group for each card.
+    </div>
+    <div class="live-counter" id="c-sec1">This part: 0 correct</div>
+    <div id="build-sec1"></div>
+    <details class="key">
+      <summary>Answer key: Part 1</summary>
+      <div class="key-body" id="key-sec1"></div>
+    </details>
+    <div class="nav-buttons">
+      <button class="nav-btn retry" data-retry="1">Retry this part</button>
+      <button class="nav-btn primary" data-go="2">Next part</button>
+    </div>
+  </section>
+
+  <!-- ================= PART 2: BUILD THE WORDS ================= -->
+  <section class="part-section" id="sec2" aria-labelledby="h-sec2">
+    <div class="part-header">
+      <h2 id="h-sec2">Part 2: Build the Words</h2>
+      <p>Everyday words and everyday expressions.</p>
+    </div>
+    <div class="instructions">
+      <strong>What to do:</strong> Read the clue. Tap the tiles to build the answer.
+      Tap a tile in the answer box to send it back. Then tap <strong>Check my answer</strong>.
+    </div>
+    <div class="live-counter" id="c-sec2">This part: 0 correct</div>
+    <div id="build-sec2"></div>
+    <details class="key">
+      <summary>Answer key: Part 2</summary>
+      <div class="key-body" id="key-sec2"></div>
+    </details>
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" data-go="1">Back</button>
+      <button class="nav-btn retry" data-retry="2">Retry this part</button>
+      <button class="nav-btn primary" data-go="3">Next part</button>
+    </div>
+  </section>
+
+  <!-- ================= PART 3: TAP THE PART ================= -->
+  <section class="part-section" id="sec3" aria-labelledby="h-sec3">
+    <div class="part-header">
+      <h2 id="h-sec3">Part 3: Tap the Part</h2>
+      <p>Find the important part of a message and a notice.</p>
+    </div>
+    <div class="instructions">
+      <strong>What to do:</strong> Read the text. Then read the question.
+      Tap the part of the text that answers the question. You will see if you are right straight away.
+    </div>
+    <div class="live-counter" id="c-sec3">This part: 0 correct</div>
+    <div id="build-sec3"></div>
+    <details class="key">
+      <summary>Answer key: Part 3</summary>
+      <div class="key-body" id="key-sec3"></div>
+    </details>
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" data-go="2">Back</button>
+      <button class="nav-btn retry" data-retry="3">Retry this part</button>
+      <button class="nav-btn primary" data-go="4">Next part</button>
+    </div>
+  </section>
+
+  <!-- ================= PART 4: FIND THE DETAILS ================= -->
+  <section class="part-section" id="sec4" aria-labelledby="h-sec4">
+    <div class="part-header">
+      <h2 id="h-sec4">Part 4: Find the Details</h2>
+      <p>Times, prices, actions and the end of an email.</p>
+    </div>
+    <div class="instructions">
+      <strong>What to do:</strong> Tap a line to make it yellow. Tap it again to take the yellow off.
+      Highlight the correct line or lines, then tap <strong>Check my answer</strong>.
+    </div>
+    <div class="live-counter" id="c-sec4">This part: 0 correct</div>
+    <div id="build-sec4"></div>
+    <details class="key">
+      <summary>Answer key: Part 4</summary>
+      <div class="key-body" id="key-sec4"></div>
+    </details>
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" data-go="3">Back</button>
+      <button class="nav-btn retry" data-retry="4">Retry this part</button>
+      <button class="nav-btn primary" data-go="5">Next part</button>
+    </div>
+  </section>
+
+  <!-- ================= PART 5: CHOOSE THE WORD ================= -->
+  <section class="part-section" id="sec5" aria-labelledby="h-sec5">
+    <div class="part-header">
+      <h2 id="h-sec5">Part 5: Choose the Word</h2>
+      <p>Grammar inside real messages and emails.</p>
+    </div>
+    <div class="instructions">
+      <strong>What to do:</strong> Tap a gap in the text. A small box will open with three words.
+      Tap the best word for that gap. The gap turns green if you are right.
+    </div>
+    <div class="live-counter" id="c-sec5">This part: 0 correct</div>
+    <div id="build-sec5"></div>
+    <details class="key">
+      <summary>Answer key: Part 5</summary>
+      <div class="key-body" id="key-sec5"></div>
+    </details>
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" data-go="4">Back</button>
+      <button class="nav-btn retry" data-retry="5">Retry this part</button>
+      <button class="nav-btn primary" data-go="6">Next part</button>
+    </div>
+  </section>
+
+  <!-- ================= PART 6: TEXT MESSAGE LIVE ================= -->
+  <section class="part-section" id="sec6" aria-labelledby="h-sec6">
+    <div class="part-header">
+      <h2 id="h-sec6">Part 6: Text Message Live</h2>
+      <p>Real phone messages. Choose the best reply.</p>
+    </div>
+    <div class="instructions">
+      <strong>What to do:</strong> Read the message on the phone. Tap the best reply.
+      Think about <strong>who</strong> sent the message and <strong>how polite</strong> your reply must be.
+      Sometimes the best answer is: do not reply. Watch the conversation grow.
+    </div>
+    <div class="live-counter" id="c-sec6">This part: 0 correct</div>
+    <div id="build-sec6"></div>
+    <details class="key">
+      <summary>Answer key: Part 6</summary>
+      <div class="key-body" id="key-sec6"></div>
+    </details>
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" data-go="5">Back</button>
+      <button class="nav-btn retry" data-retry="6">Retry this part</button>
+      <button class="nav-btn primary" data-go="7">Next part</button>
+    </div>
+  </section>
+
+  <!-- ================= PART 7: EMAIL LIVE ================= -->
+  <section class="part-section" id="sec7" aria-labelledby="h-sec7">
+    <div class="part-header">
+      <h2 id="h-sec7">Part 7: Email Live</h2>
+      <p>Find the problems. Fix the order. Write your own.</p>
+    </div>
+    <div class="instructions">
+      <strong>What to do:</strong> First find the problems in a bad email.
+      Then put a good email in the correct order. Last, write your own short email.
+    </div>
+    <div class="live-counter" id="c-sec7">This part: 0 correct</div>
+    <div id="build-sec7"></div>
+    <details class="key">
+      <summary>Answer key: Part 7</summary>
+      <div class="key-body" id="key-sec7"></div>
+    </details>
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" data-go="6">Back</button>
+      <button class="nav-btn retry" data-retry="7">Retry this part</button>
+      <button class="nav-btn primary" data-go="8">See my results</button>
+    </div>
+  </section>
+
+  <!-- ================= RESULTS ================= -->
+  <section class="part-section" id="sec8" aria-labelledby="h-sec8">
+    <div class="part-header">
+      <h2 id="h-sec8">Your Results</h2>
+      <p>Your score and what to practise next.</p>
+    </div>
+
+    <div class="results-card">
+      <h2>Well done for finishing</h2>
+      <div class="big-score" id="resBig">0 / 0</div>
+      <div id="resPct">0% correct</div>
+      <div id="resBand"></div>
+      <div class="breakdown" id="resTable"></div>
+    </div>
+
+    <div class="item-card">
+      <span class="item-type-tag">Next steps</span>
+      <div class="item-top-row">
+        <p class="prompt"><span class="item-number">&#10003;</span>What to practise next</p>
+      </div>
+      <div class="advice" id="resAdvice"></div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" data-go="7">Back to Part 7</button>
+      <button class="nav-btn primary" id="btnRestart">Start again</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="credit">TAFE NSW &middot; AMEP &middot; St Leonards &amp; Campsie</footer>
+
+<!-- Popover used by Part 5 -->
+<div class="pop-veil" id="popVeil"></div>
+<div class="popover" id="popover" role="dialog" aria-label="Choose a word">
+  <div class="pop-title" id="popTitle">Choose the best word</div>
+  <div id="popOpts"></div>
+  <button class="pop-close" id="popClose">Close</button>
+</div>
+<script>
+"use strict";
+/* ==========================================================================
+   PART A: SCORING ENGINE
+   Every graded question registers itself once. The first answer counts.
+   ========================================================================== */
+var STATE = {
+  items: {},          /* id -> {sec:n, correct:bool|null} */
+  sectionTotals: {},  /* sec -> number of registered items */
+  writing: {},        /* id -> true when a writing task is finished */
+  current: 1
+};
+
+/* The parts in teaching order, easiest first:
+   sorting (2 choices) -> vocabulary -> find one detail -> find several
+   details -> grammar -> write a short reply -> write a whole email.
+   To change the order, move the entries in this array and move the matching
+   part-section blocks in the HTML. Numbering, navigation, retry, the
+   progress pills and the results breakdown all follow from here.
+   Builder functions are hoisted, so they can be listed before they appear. */
+var PARTS = [
+  { title:"Sort the Cards",    build:buildSortCards       },
+  { title:"Build the Words",   build:buildWordTiles       },
+  { title:"Tap the Part",      build:buildTapThePart      },
+  { title:"Find the Details",  build:buildFindDetails     },
+  { title:"Choose the Word",   build:buildChooseTheWord   },
+  { title:"Text Message Live", build:buildTextMessageLive, writing:["w6"] },
+  { title:"Email Live",        build:buildEmailLive,       writing:["w7"] }
+];
+var NPARTS = PARTS.length;
+var RESULTS_SEC = NPARTS + 1;
+var WRITING_TOTAL = 2;
+function partName(n){ return "Part " + n + ": " + PARTS[n-1].title; }
+
+/* Register a question so it is counted in the total. */
+function reg(id, sec){
+  if(!STATE.items[id]){
+    STATE.items[id] = {sec:sec, correct:null};
+    STATE.sectionTotals[sec] = (STATE.sectionTotals[sec]||0) + 1;
+  }
+}
+/* Record an answer. Only the first answer for an id is scored. */
+function mark(id, isCorrect){
+  var it = STATE.items[id];
+  if(!it || it.correct !== null) return;
+  it.correct = !!isCorrect;
+  updateProgress();
+}
+function sectionScore(sec){
+  var got=0, tot=0;
+  for(var k in STATE.items){
+    if(STATE.items[k].sec === sec){ tot++; if(STATE.items[k].correct === true) got++; }
+  }
+  return {got:got, tot:tot};
+}
+function totalScore(){
+  var got=0, tot=0, ans=0;
+  for(var k in STATE.items){
+    tot++;
+    if(STATE.items[k].correct !== null){ ans++; if(STATE.items[k].correct) got++; }
+  }
+  return {got:got, tot:tot, ans:ans};
+}
+
+/* ==========================================================================
+   PART B: SMALL HELPERS
+   ========================================================================== */
+function el(tag, cls, html){
+  var n = document.createElement(tag);
+  if(cls) n.className = cls;
+  if(html !== undefined) n.innerHTML = html;
+  return n;
+}
+function $(sel){ return document.querySelector(sel); }
+function shuffle(arr){
+  var a = arr.slice(), i, j, t;
+  for(i=a.length-1;i>0;i--){
+    j = Math.floor(Math.random()*(i+1));
+    t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+function reducedMotion(){
+  return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+/* Show a feedback box under a task. */
+function feedback(box, kind, head, body){
+  box.className = "feedback show " + kind;
+  box.innerHTML = "<span class='fb-head'>" + head + "</span>" + (body||"");
+}
+
+/* Build the top of an item card: amber type tag, numbered prompt and an
+   optional round hint button that opens a teal hint box. */
+function cardHead(card, num, tagText, titleText, hintText){
+  if(tagText) card.appendChild(el("span","item-type-tag", tagText));
+  var row = el("div","item-top-row");
+  row.appendChild(el("p","prompt","<span class='item-number'>"+num+"</span>"+titleText));
+  if(hintText){
+    var box = el("div","hint-box", hintText);
+    box.hidden = true;
+    var btn = el("button","hint-btn","?");
+    btn.type = "button";
+    btn.setAttribute("aria-label","Show a hint");
+    btn.setAttribute("aria-expanded","false");
+    btn.addEventListener("click", function(){
+      box.hidden = !box.hidden;
+      btn.setAttribute("aria-expanded", box.hidden ? "false" : "true");
+    });
+    row.appendChild(btn);
+    card.appendChild(row);
+    card.appendChild(box);
+  } else {
+    card.appendChild(row);
+  }
+}
+
+/* ==========================================================================
+   PART C: CONTENT DATA
+   All scenarios are everyday Australian situations. All of them are new.
+   ========================================================================== */
+
+/* ---- PART 1: swipe decks ----------------------------------------------- */
+var SWIPE_DECKS = [
+  {
+    id:"s1a",
+    title:"Do you need to answer this message?",
+    hint:"A question needs an answer. News and information do not need an answer.",
+    left:{key:"info", label:"Just information"},
+    right:{key:"reply", label:"You must reply"},
+    cards:[
+      {t:"Your parcel is now at Meadowbank Post Office. Please collect it before Friday.", a:"info"},
+      {t:"Can you come at 9 am or at 11 am on Tuesday? Please text back.", a:"reply"},
+      {t:"The pool will be closed on Monday for cleaning.", a:"info"},
+      {t:"Hi Marco, are you coming to class tomorrow? Let me know.", a:"reply"},
+      {t:"Your appointment with Dr Farag is booked for 3 pm on 12 May.", a:"info"},
+      {t:"Your glasses are ready. Text YES if you want us to post them to your home.", a:"reply"},
+      {t:"Reminder: your rent goes out of your account on Thursday.", a:"info"},
+      {t:"Sorry, I cannot find your street number. Which unit are you in?", a:"reply"}
+    ]
+  },
+  {
+    id:"s1b",
+    title:"Is this message safe, or is it a scam?",
+    hint:"A safe business gives its name and a phone number. A scam wants money, a password or a strange link.",
+    left:{key:"safe", label:"Safe message"},
+    right:{key:"scam", label:"Scam message"},
+    cards:[
+      {t:"Sunnyside Dental: your check up is on 12 May at 10 am. Call 9807 4411 to change it.", a:"safe"},
+      {t:"You have won a new phone! Click here now and send us your bank number.", a:"scam"},
+      {t:"Your parcel is on hold. Pay a small fee of $2.99 at this link to get it today.", a:"scam"},
+      {t:"Hello, this is Nina from Parkside Property. I will come at 2 pm on Thursday.", a:"safe"},
+      {t:"URGENT. Your account will close today. Send your password to keep it open.", a:"scam"},
+      {t:"Homebush Tyre and Brake: your car is ready. Please collect it before 5 pm.", a:"safe"},
+      {t:"This is the tax office. Pay $900 today or the police will come to your house.", a:"scam"},
+      {t:"TAFE NSW: on Wednesday your Level 2 class moves to Room B12.", a:"safe"}
+    ]
+  }
+];
+
+/* ---- PART 2: letter tiles and word tiles ------------------------------- */
+var LETTER_TASKS = [
+  {id:"L1", word:"RECEIPT",   clue:"Keep this small piece of paper. It shows the shop that you paid for the shoes."},
+  {id:"L2", word:"DELIVERY",  clue:"Your new chair will come to your home in a truck on Friday. This is a ____."},
+  {id:"L3", word:"URGENT",    clue:"This word tells you: do it today, not next week."},
+  {id:"L4", word:"AVAILABLE", clue:"The dentist has no other patient at 10 am on Tuesday. She is ____ then."},
+  {id:"L5", word:"COLLECT",   clue:"Your parcel is at the post office. You must go there and ____ it yourself."}
+];
+var PHRASE_TASKS = [
+  {id:"P1", words:["see","you","then"], extra:["later","now"],
+   clue:"Your friend says the day and the time. You write these three words at the end of your message."},
+  {id:"P2", words:["sorry","for","the","late","reply"], extra:["very","message"],
+   clue:"You did not answer for two days. You start your message with these five words."},
+  {id:"P3", words:["give","me","a","call"], extra:["please","phone"],
+   clue:"You want the person to telephone you, not to text you. You ask with these four words."},
+  {id:"P4", words:["as","soon","as","possible"], extra:["quick","very"],
+   clue:"You want it fast, but you are still polite. These four words mean: quickly, please."}
+];
+
+/* ---- PART 3: hotspot texts --------------------------------------------- */
+var HOTSPOT_TASKS = [
+  {
+    id:"h3a",
+    title:"A text message from an optical shop",
+    hint:"A business message tells you who, when, and what you must do.",
+    mock:{type:"sms", who:"Clearview Optical", sub:"Text message", initials:"CO", biz:true},
+    parts:[
+      {k:"a", t:"Good morning Hoang."},
+      {k:"b", t:"This is Clearview Optical in Strathfield."},
+      {k:"c", t:"Your new glasses are ready to collect from Monday 3 August."},
+      {k:"d", t:"Please bring your receipt with you."},
+      {k:"e", t:"We stay open late on Thursday, until 6:30 pm, so you can come after work."}
+    ],
+    questions:[
+      {q:"Tap the part that tells you WHICH shop sent this message.", a:"b",
+       ok:"Yes. A business says its name at the start of the message.",
+       no:"Not quite. Look for the name of the shop and the suburb."},
+      {q:"Tap the part that tells you WHEN you can collect the glasses.", a:"c",
+       ok:"Correct. The day and the date are in the same sentence.",
+       no:"Look again. Find the day and the date."},
+      {q:"Tap the part that tells you WHAT to bring with you.", a:"d",
+       ok:"Well done. The word 'bring' is the clue.",
+       no:"Not that one. Look for the word 'bring'."},
+      {q:"Tap the part that tells you the shop is open LATE on one day.", a:"e",
+       ok:"Yes. 'Stay open late' tells you the shop closes later on that day.",
+       no:"Look for the line with a time in the evening."}
+    ]
+  },
+  {
+    id:"h3b",
+    title:"A council notice about your bins",
+    hint:"A notice is for everybody in the street, not for one person.",
+    mock:{type:"notice"},
+    parts:[
+      {k:"a", t:"CITY OF RYDE", title:true},
+      {k:"b", t:"BIN NIGHT CHANGES NEXT WEEK", title:true},
+      {k:"c", t:"Monday is a public holiday, so the trucks will not come."},
+      {k:"d", t:"Please put your red bin out on Tuesday night, not Monday night."},
+      {k:"e", t:"The yellow bin does not change. It stays on Thursday."}
+    ],
+    questions:[
+      {q:"Tap the line that gives the MAIN news of this notice.", a:"b",
+       ok:"Correct. A notice puts its main news at the top, in the biggest letters.",
+       no:"Not quite. Read the biggest words at the very top of the notice."},
+      {q:"Tap the line that tells you WHY the day is changing.", a:"c",
+       ok:"Yes. The word 'so' shows a reason and a result.",
+       no:"Look for the line that answers the question 'why'."},
+      {q:"Tap the line that tells you what YOU must do.", a:"d",
+       ok:"Well done. 'Please put' is the instruction for you.",
+       no:"Look for the word 'please'. That line asks you to do something."},
+      {q:"Tap the line that tells you what STAYS THE SAME.", a:"e",
+       ok:"Yes. 'Does not change' is the clue.",
+       no:"One bin is not changing. Find that line."}
+    ]
+  }
+];
+
+/* ---- PART 4: highlight texts ------------------------------------------- */
+var HL_TEXTS = [
+  {
+    id:"t4a",
+    label:"Email from the swim school",
+    heading:"An email from a swim school",
+    mock:{type:"email", from:"bookings@concordswim.com.au", to:"hoang.t@bmail.com", subject:"Your swimming lesson booking"},
+    lines:[
+      {k:"a", t:"Hi Hoang,"},
+      {k:"b", t:"Thank you for booking a swimming lesson for your daughter."},
+      {k:"c", t:"The first lesson is on Saturday 9 August at 9:30 am."},
+      {k:"d", t:"Please arrive ten minutes early and bring a towel and goggles."},
+      {k:"e", t:"Each lesson costs $22."},
+      {k:"f", t:"If you cannot come one week, please email us before Friday."},
+      {k:"g", t:"Kind regards,"},
+      {k:"h", t:"Bianca Ortiz"}
+    ],
+    tasks:[
+      {id:"t4a-1", q:"Highlight the line that gives the day, the date and the time.", a:["c"],
+       ok:"Correct. One line often carries all three details together.",
+       no:"Look for a day, a date and a clock time in the same line."},
+      {id:"t4a-2", q:"Highlight the line that tells you what to bring.", a:["d"],
+       ok:"Yes. 'Bring' tells you what to put in your bag.",
+       no:"Find the word 'bring'."},
+      {id:"t4a-3", q:"Highlight the TWO lines that tell you the price and what to do if you cannot come.", a:["e","f"],
+       ok:"Well done. Money and cancelling are two different details.",
+       no:"One line has a dollar sign. The other line starts with 'If'."},
+      {id:"t4a-4", q:"Highlight the TWO lines at the end of the email. An email finishes with the closing on one line and the writer's name under it.", a:["g","h"],
+       ok:"Correct. The closing goes on one line and the name goes on the next line.",
+       no:"Look at the last two lines. They are not one line together."}
+    ]
+  },
+  {
+    id:"t4b",
+    label:"Text message from the plumber",
+    heading:"A text message from a plumber",
+    mock:{type:"sms", who:"QuickFix Plumbing", sub:"Text message", initials:"QF", biz:true},
+    lines:[
+      {k:"a", t:"Hello Farrah, this is Dario from QuickFix Plumbing."},
+      {k:"b", t:"I am coming tomorrow to fix your hot water tap."},
+      {k:"c", t:"I will arrive between 1 pm and 3 pm."},
+      {k:"d", t:"Please leave the side gate open for me."},
+      {k:"e", t:"The visit costs $95. You can use a card."},
+      {k:"f", t:"Text me if 1 pm is too early for you."}
+    ],
+    tasks:[
+      {id:"t4b-1", q:"Highlight the line that tells you the time the plumber will come.", a:["c"],
+       ok:"Yes. 'Between 1 pm and 3 pm' is a time window, not one exact time.",
+       no:"Look for two clock times in the same line."},
+      {id:"t4b-2", q:"Highlight the TWO lines that ask you to do something.", a:["d","f"],
+       ok:"Correct. Both lines give you a job to do before the visit.",
+       no:"One line starts with 'Please'. The other line starts with 'Text me'."},
+      {id:"t4b-3", q:"Highlight the line that tells you about money.", a:["e"],
+       ok:"Well done. The dollar sign is the fastest clue.",
+       no:"Look for the dollar sign."}
+    ]
+  }
+];
+
+/* ---- PART 5: tap the gap ----------------------------------------------- */
+var GAP_TASKS = [
+  {
+    id:"g5a",
+    title:"A text message to a dental clinic",
+    hint:"Days take 'on'. Clock times take 'at'. Polite questions start with Could or Would.",
+    intro:"Petra wants to change her dental appointment. She is writing a text message to the clinic.",
+    mock:{type:"sms", who:"Sunnyside Dental", sub:"Text message", initials:"SD", biz:true},
+    parts:[
+      "Hello, my name is Petra Kovac. I have an appointment ",
+      {n:1, opts:["on","in","at"], a:"on", why:"We use 'on' with a day: on Wednesday, on Friday."},
+      " Wednesday ",
+      {n:2, opts:["at","on","in"], a:"at", why:"We use 'at' with a clock time: at 4 pm, at 9:30 am."},
+      " 4 pm. I finish work at 5 pm, ",
+      {n:3, opts:["so","although","for example"], a:"so", why:"'so' shows the result. I finish at 5 pm, so I cannot come at 4 pm."},
+      " I cannot come at that time. ",
+      {n:4, opts:["Could","Should","Do"], a:"Could", why:"'Could you please ...' is a polite way to ask a business for something."},
+      " you please move my appointment to Friday? I ",
+      {n:5, opts:["would","will","am"], a:"would", why:"'I would like' is polite. 'I want' sounds too strong for a clinic."},
+      " like a time before 12 pm. ",
+      {n:6, opts:["Also","Because","When"], a:"Also", why:"'Also' adds one more piece of information to your message."},
+      ", can you tell me the price of a clean? Thank you, Petra"
+    ]
+  },
+  {
+    id:"g5b",
+    title:"An email to a property manager",
+    hint:"Look for the time words. They tell you which verb to use.",
+    intro:"Yusuf has a problem in his flat. He is writing an email to the property manager.",
+    mock:{type:"email", from:"yusuf.a@bmail.com", to:"nina@parksideproperty.com.au", subject:"Broken heater in Unit 7"},
+    parts:[
+      "Hi Nina,\n\nMy name is Yusuf Aziz. I live in Unit 7, 14 Marsden Road.\n\nThe heater in my living room ",
+      {n:1, opts:["stopped","stops","will stop"], a:"stopped", why:"'last night' is finished time, so we use the past simple: stopped."},
+      " last night. ",
+      {n:2, opts:["Although","Because","So"], a:"Although", why:"'Although' joins two ideas that are different: the flat is new, but the heater is old."},
+      " the flat is new, the heater is very old. Right now my family ",
+      {n:3, opts:["is sitting","sits","sat"], a:"is sitting", why:"'Right now' means at this moment, so we use verb + ing: is sitting."},
+      " in the kitchen, because it is warmer there.\n\n",
+      {n:4, opts:["Could","Should","Am"], a:"Could", why:"'Could you please send someone' is a polite request to a business."},
+      " you please send someone this week? I am home every day ",
+      {n:5, opts:["after","before","between"], a:"after", why:"'after 3 pm' means from 3 pm to the end of the day."},
+      " 3 pm. ",
+      {n:6, opts:["For example","But","When"], a:"For example", why:"'For example' shows you are giving one example of a good time."},
+      ", Thursday afternoon is good for me.\n\nThank you for your help.\n\nKind regards,\nYusuf"
+    ]
+  },
+  {
+    id:"g5c",
+    title:"A text message to a neighbour",
+    hint:"With a neighbour you can be friendly, but the grammar must still be correct.",
+    intro:"Halima is writing to her neighbour, Marco. He took a parcel for her yesterday.",
+    mock:{type:"sms", who:"Marco (neighbour)", sub:"Text message", initials:"M", biz:false},
+    parts:[
+      "Hi Marco, thank you for taking my parcel yesterday. I ",
+      {n:1, opts:["will","went","did"], a:"will", why:"'will' + base verb talks about the future: I will come."},
+      " come and get it ",
+      {n:2, opts:["this afternoon","last night","two days ago"], a:"this afternoon", why:"The verb is about the future, so the time words must be about the future too."},
+      ". I ",
+      {n:3, opts:["am going to","went","goes"], a:"am going to", why:"'am going to' is for a plan you already made: I am going to cook dinner."},
+      " cook dinner at six, so I ",
+      {n:4, opts:["might","must","am going"], a:"might", why:"'might' means it is possible, but you are not sure."},
+      " be a little late. ",
+      {n:5, opts:["When","Although","But"], a:"When", why:"'When I finish' tells the other person the time your action starts."},
+      " I finish, I will knock on your door. Your new front gate looks ",
+      {n:6, opts:["great","greatly","more great"], a:"great", why:"After 'looks' we use an adjective: it looks great, it looks new."},
+      ". See you soon, Halima"
+    ]
+  }
+];
+
+/* ---- PART 6: SMS simulator --------------------------------------------- */
+var SMS_THREADS = [
+  {
+    id:"m6a", who:"Sunnyside Dental", sub:"Text message", initials:"SD", biz:true,
+    incoming:"Reminder: your dental check up is tomorrow at 10 am with Dr Farag. Please reply YES to confirm.",
+    options:[
+      {t:"YES. Thank you. Petra Kovac.", correct:true,
+       fb:"Short, clear, and it gives your name so the clinic knows who replied.",
+       reply:"Thank you Petra. We will see you tomorrow at 10 am."},
+      {t:"Hello, how are you?", correct:false,
+       fb:"This is friendly, but the clinic asked you to confirm. Answer the question first."},
+      {t:"Who is this?", correct:false,
+       fb:"The message already gives the name of the clinic and the dentist."}
+    ]
+  },
+  {
+    id:"m6b", who:"Lina (classmate)", sub:"Text message", initials:"L", biz:false,
+    incoming:"Hi! I was away from class today. What was the homework?",
+    options:[
+      {t:"Hi Lina, we read a notice and wrote a short email. The homework is page 12. See you tomorrow.", correct:true,
+       fb:"Friendly and useful. You answered the question and you gave the page number.",
+       reply:"Thanks so much. See you tomorrow."},
+      {t:"I would like to advise you that the homework is on page 12.", correct:false,
+       fb:"This sounds too formal for a classmate. Save this language for a business or a clinic."},
+      {t:"Hello, how are you?", correct:false,
+       fb:"Lina asked a question. Answer the question first, then chat."}
+    ]
+  },
+  {
+    id:"m6c", who:"Homebush Tyre and Brake", sub:"Text message", initials:"HT", biz:true,
+    incoming:"Good news, your car is ready. We close at 5 pm today. Can you collect it this afternoon?",
+    options:[
+      {t:"Yes, I can collect it at about 4 pm today. Thank you. Marco Belli.", correct:true,
+       fb:"You answered yes, you gave a time, and you gave your name.",
+       reply:"No problem Marco. See you at 4 pm."},
+      {t:"Bring it to my house.", correct:false,
+       fb:"This sounds like an order, and the shop did not offer this. A polite request uses could or would."},
+      {t:"ok car", correct:false,
+       fb:"Too short. The shop asked about the time, so your reply must give a time."}
+    ]
+  },
+  {
+    id:"m6d", who:"Parcel Delivery", sub:"Unknown number", initials:"!", biz:true,
+    incoming:"Your parcel is on hold. Pay a fee of $2.99 now at this link to get it today: parcel-fee-pay.info",
+    options:[
+      {t:"Do not reply. This looks like a scam message.", correct:true,
+       fb:"Well done. A real delivery company does not ask for money at a strange link.",
+       system:"You did not reply. Delete the message, and check your parcel on the real website."},
+      {t:"Here is my card number.", correct:false,
+       fb:"Never send your card number or your bank number in a text message."},
+      {t:"Hello, how are you?", correct:false,
+       fb:"Do not answer a scam message at all. If you reply, they know your number is real."}
+    ]
+  },
+  {
+    id:"m6e", who:"Dario (neighbour)", sub:"Text message", initials:"D", biz:false,
+    incoming:"Hi, your parcel came when you were out. I have it at my place. I am home all evening.",
+    options:[
+      {t:"Thanks so much Dario. I will come and get it after 6 pm. See you then.", correct:true,
+       fb:"You said thank you, and you gave a time. That is friendly and clear.",
+       reply:"No worries. See you then."},
+      {t:"Leave it at my door now.", correct:false,
+       fb:"Your neighbour is helping you. This reply sounds like an order. Say thank you first."},
+      {t:"Who are you?", correct:false,
+       fb:"The message gives his name. This reply is not friendly."}
+    ]
+  },
+  {
+    id:"m6f", who:"TAFE NSW St Leonards", sub:"Message to all students", initials:"TN", biz:true,
+    incoming:"Notice for all students: on Wednesday the Level 2 class moves to Room B12. No reply is needed.",
+    options:[
+      {t:"Do not reply. This message is information for everybody.", correct:true,
+       fb:"Correct. A notice does not ask you a question, so it does not need a reply.",
+       system:"You did not reply. Write the new room number in your diary."},
+      {t:"Yes please.", correct:false,
+       fb:"There is no question in this message, so 'yes' does not make sense."},
+      {t:"Can you move the class back to the old room?", correct:false,
+       fb:"A class notice is for everybody. One student cannot change it by text message."}
+    ]
+  }
+];
+
+var SMS_WRITE = {
+  id:"w6",
+  who:"Concord Swim School", sub:"Text message", initials:"CS",
+  incoming:"Hi Hoang, we have a free lesson on Tuesday at 4 pm. Would you like to move your Saturday lesson to Tuesday? Please text back today.",
+  prompt:"Write a reply to the swim school. Say your name. Say yes or no clearly. Give one reason. Finish with a thank you.",
+  checks:[
+    "I wrote my name.",
+    "I said yes or no clearly.",
+    "I gave one reason.",
+    "I used a polite word, for example please or thank you.",
+    "I used capital letters and full stops."
+  ],
+  model:[
+    "Hello, this is Hoang Tran. Thank you for your message.",
+    "No thank you. Tuesday at 4 pm is too early for me, because I finish work at 4:30 pm.",
+    "I would like to keep my Saturday lesson. Thank you for your help."
+  ]
+};
+
+/* ---- PART 7: email simulator ------------------------------------------- */
+var EMAIL_BAD = {
+  id:"e7bad",
+  chunks:[
+    {k:"sub", label:"Subject:", t:"(nothing here)", bad:true,
+     why:"The subject line is empty. Write a short subject so the reader knows the topic, for example: Request for a medical form."},
+    {k:"greet", t:"hey", bad:true,
+     why:"'hey' is too informal for a clinic, and it has no capital letter. Write 'Hello,' or 'Dear Greenway Medical Centre,'."},
+    {k:"who", t:"My name is Petra Kovac and I am a patient at your clinic.", bad:false},
+    {k:"body1", t:"i need a medical form for my new job.", bad:true,
+     why:"The word 'i' must be a capital I. In English, I is always a capital letter."},
+    {k:"body2", t:"Send it today.", bad:true,
+     why:"This is an order, not a request. Write: Could you please send it this week?"},
+    {k:"body3", t:"If it is easier, I can come to the clinic on Friday morning.", bad:false},
+    {k:"close", t:"thanks petra", bad:true,
+     why:"The closing and the name are on one line, and there are no capital letters. Write 'Thank you,' on one line and 'Petra Kovac' on the next line."}
+  ]
+};
+
+var EMAIL_ORDER = {
+  id:"e7ord",
+  pieces:[
+    {k:"a", role:"Subject line",  t:"Subject: Request for a medical form"},
+    {k:"b", role:"Greeting",      t:"Hello,"},
+    {k:"c", role:"Who you are",   t:"My name is Petra Kovac. I am a patient at your clinic."},
+    {k:"d", role:"The reason you are writing", t:"I need a medical form for my new job."},
+    {k:"e", role:"Your request",  t:"Could you please email the form to me this week?"},
+    {k:"f", role:"Extra useful information", t:"If it is easier, I can come to the clinic on Friday morning."},
+    {k:"g", role:"Closing",       t:"Thank you for your help,"},
+    {k:"h", role:"Your name",     t:"Petra Kovac"}
+  ]
+};
+
+var EMAIL_WRITE = {
+  id:"w7",
+  prompt:"Write a short email to your teacher at TAFE. Say that you will not be in class next Wednesday. Say why. Ask politely for the work you will miss.",
+  checks:[
+    "I wrote a short subject line.",
+    "I started with a greeting, for example Hello or Hi.",
+    "I said who I am and which class I am in.",
+    "I said which day I will be away, and why.",
+    "I asked for the work politely, with could or would.",
+    "I finished with the closing on one line and my name on the next line."
+  ],
+  model:[
+    "Subject: Away from class next Wednesday",
+    "Hello Sarah,",
+    "My name is Marco Belli. I am in the Level 2 class on Wednesday.",
+    "I will not be in class next Wednesday, because I have an appointment at the hospital.",
+    "Could you please tell me the work I will miss? I would like to do it at home.",
+    "Thank you very much,",
+    "Marco Belli"
+  ]
+};
+
+/* ==========================================================================
+   PART D: MOCKUP BUILDERS
+   These draw the phone, the email and the notice frames.
+   ========================================================================== */
+function mockHeader(m){
+  var bar = el("div","sms-header");
+  var av = el("div","sms-avatar" + (m.biz ? " biz" : ""), m.initials||"?");
+  var who = el("div","", "<div class='sms-name'>"+m.who+"</div><div class='sms-sub'>"+(m.sub||"")+"</div>");
+  bar.appendChild(av); bar.appendChild(who);
+  return bar;
+}
+function emailHeader(m){
+  var box = el("div","email-meta");
+  box.innerHTML =
+    "<div><span class='k'>From</span><span>"+m.from+"</span></div>"+
+    "<div><span class='k'>To</span><span>"+m.to+"</span></div>"+
+    "<div><span class='k'>Subject</span><span>"+m.subject+"</span></div>";
+  var wrapEl = el("div","");
+  var bar = el("div","sms-header");
+  bar.innerHTML = "<div class='sms-avatar biz'>@</div><div><div class='sms-name'>Email</div><div class='sms-sub'>Inbox</div></div>";
+  wrapEl.appendChild(bar); wrapEl.appendChild(box);
+  return wrapEl;
+}
+
+/* ==========================================================================
+   PART E: SWIPE-STYLE SORTING
+   Cards can be swiped with a finger or sorted with the two big buttons.
+   ========================================================================== */
+function buildSortCards(sec){
+  var host = document.getElementById("build-sec"+sec);
+  var keyHost = document.getElementById("key-sec"+sec);
+
+  SWIPE_DECKS.forEach(function(deck, di){
+    deck.cards.forEach(function(c,i){ reg(deck.id+"-"+i, sec); });
+
+    var card = el("div","item-card");
+    cardHead(card, di+1, "Swipe to sort", deck.title, deck.hint);
+
+    var zone = el("div","deck-zone");
+    var fb = el("div","feedback");
+    var controls = el("div","swipe-controls");
+    var bL = el("button","nav-btn secondary","&#9664; "+deck.left.label);
+    var bR = el("button","nav-btn primary", deck.right.label+" &#9654;");
+    bL.type="button"; bR.type="button";
+    controls.appendChild(bL); controls.appendChild(bR);
+    var help = el("p","swipe-help","Swipe the card, or tap a button. Card <span class='cnum'>1</span> of "+deck.cards.length+".");
+
+    card.appendChild(zone);
+    card.appendChild(controls);
+    card.appendChild(help);
+    card.appendChild(fb);
+    host.appendChild(card);
+
+    var idx = 0;
+
+    function render(){
+      zone.innerHTML = "";
+      if(idx >= deck.cards.length){
+        var sc = 0;
+        deck.cards.forEach(function(c,i){ if(STATE.items[deck.id+"-"+i].correct) sc++; });
+        zone.appendChild(el("div","deck-empty","All cards sorted.<br>You got "+sc+" out of "+deck.cards.length+" correct."));
+        bL.disabled = true; bR.disabled = true;
+        help.querySelector(".cnum").textContent = deck.cards.length;
+        return;
+      }
+      help.querySelector(".cnum").textContent = (idx+1);
+      /* the card behind, so the pile looks real */
+      if(idx+1 < deck.cards.length){
+        zone.appendChild(el("div","swipe-card behind", deck.cards[idx+1].t));
+      }
+      var top = el("div","swipe-card top", "");
+      top.innerHTML =
+        "<span class='stamp l'>"+deck.left.label+"</span>"+
+        "<span class='stamp r'>"+deck.right.label+"</span>"+
+        "<span>"+deck.cards[idx].t+"</span>";
+      zone.appendChild(top);
+      attachDrag(top);
+    }
+
+    /* Pointer drag, so the card follows the finger on a phone. */
+    function attachDrag(node){
+      var startX = 0, dx = 0, dragging = false;
+      node.addEventListener("pointerdown", function(e){
+        dragging = true; startX = e.clientX; dx = 0;
+        node.setPointerCapture(e.pointerId);
+        node.style.transition = "none";
+      });
+      node.addEventListener("pointermove", function(e){
+        if(!dragging) return;
+        dx = e.clientX - startX;
+        node.style.transform = "translateX("+dx+"px) rotate("+(dx/22)+"deg)";
+        node.querySelector(".stamp.l").style.opacity = dx < 0 ? Math.min(1, -dx/70) : 0;
+        node.querySelector(".stamp.r").style.opacity = dx > 0 ? Math.min(1,  dx/70) : 0;
+      });
+      function release(){
+        if(!dragging) return;
+        dragging = false;
+        node.style.transition = "transform .2s ease";
+        if(dx < -75){ commit(deck.left.key, node, -1); }
+        else if(dx > 75){ commit(deck.right.key, node, 1); }
+        else {
+          node.style.transform = "";
+          node.querySelector(".stamp.l").style.opacity = 0;
+          node.querySelector(".stamp.r").style.opacity = 0;
+        }
+      }
+      node.addEventListener("pointerup", release);
+      node.addEventListener("pointercancel", release);
+    }
+
+    function commit(choiceKey, node, dir){
+      if(idx >= deck.cards.length) return;
+      var c = deck.cards[idx];
+      var right = (choiceKey === c.a);
+      mark(deck.id+"-"+idx, right);
+      updateCounters();
+
+      var label = (c.a === deck.left.key) ? deck.left.label : deck.right.label;
+      if(right){
+        node.classList.add("done-ok");
+        feedback(fb,"good","Correct.", "This card goes in <b>"+label+"</b>.");
+      } else {
+        node.classList.add("done-no");
+        feedback(fb,"bad","Not quite.", "This card goes in <b>"+label+"</b>.");
+      }
+      node.style.transform = "translateX("+(dir*420)+"px) rotate("+(dir*18)+"deg)";
+      node.style.opacity = "0";
+      idx++;
+      setTimeout(function(){ render(); }, reducedMotion() ? 10 : 260);
+    }
+
+    bL.addEventListener("click", function(){
+      var t = zone.querySelector(".swipe-card.top");
+      if(t) commit(deck.left.key, t, -1);
+    });
+    bR.addEventListener("click", function(){
+      var t = zone.querySelector(".swipe-card.top");
+      if(t) commit(deck.right.key, t, 1);
+    });
+
+    render();
+  });
+
+  /* Answer key */
+  var html = "";
+  SWIPE_DECKS.forEach(function(deck){
+    html += "<h4>"+deck.title+"</h4><ol>";
+    deck.cards.forEach(function(c){
+      var label = (c.a === deck.left.key) ? deck.left.label : deck.right.label;
+      html += "<li>"+c.t+" <b>&rarr; "+label+"</b></li>";
+    });
+    html += "</ol>";
+  });
+  html += "<p class='note'>Tip: a message with a question mark almost always needs a reply. A scam message wants money fast, or wants your password, or gives you a link you do not know.</p>";
+  keyHost.innerHTML = html;
+}
+
+/* ==========================================================================
+   PART F: LETTER TILES AND WORD TILES
+   ========================================================================== */
+function buildTileTask(host, cfg, num, sec){
+  /* cfg: {id, clue, units[], answer[], wordMode} */
+  reg(cfg.id, sec);
+
+  var card = el("div","item-card");
+  cardHead(card, num, cfg.wordMode ? "Word tiles" : "Letter tiles",
+    (cfg.wordMode ? "Build the expression" : "Build the word"), null);
+  card.appendChild(el("div","clue","<b>Clue:</b> "+cfg.clue));
+
+  var slots = el("div","slots");
+  var pool  = el("div","tile-pool");
+  var fb    = el("div","feedback");
+
+  var placed = [];  /* {value, node} */
+
+  shuffle(cfg.units).forEach(function(u){
+    var b = el("button","tile" + (cfg.wordMode ? " word" : ""), u);
+    b.type = "button";
+    b.addEventListener("click", function(){
+      if(b.classList.contains("used") || b.disabled) return;
+      b.classList.add("used");
+      var p = el("button","tile placed" + (cfg.wordMode ? " word" : ""), u);
+      p.type = "button";
+      p.addEventListener("click", function(){
+        if(p.disabled) return;
+        b.classList.remove("used");
+        slots.removeChild(p);
+        placed = placed.filter(function(x){ return x.node !== p; });
+      });
+      slots.appendChild(p);
+      placed.push({value:u, node:p});
+    });
+    pool.appendChild(b);
+  });
+
+  var btnCheck = el("button","check-btn","Check my answer");
+  var btnClear = el("button","check-btn ghost","Clear");
+  btnCheck.type="button"; btnClear.type="button";
+  var row = el("div","btn-row");
+  row.appendChild(btnCheck); row.appendChild(btnClear);
+
+  btnClear.addEventListener("click", function(){
+    if(btnCheck.disabled) return;
+    slots.innerHTML = "";
+    placed = [];
+    Array.prototype.forEach.call(pool.querySelectorAll(".tile"), function(b){ b.classList.remove("used"); });
+  });
+
+  btnCheck.addEventListener("click", function(){
+    if(btnCheck.disabled) return;
+    var joiner = cfg.wordMode ? " " : "";
+    var given = placed.map(function(p){ return p.value; }).join(joiner);
+    var want  = cfg.answer.join(joiner);
+    if(placed.length === 0){
+      feedback(fb,"info","Nothing in the box.","Tap the tiles below to build your answer.");
+      return;
+    }
+    var right = (given.toUpperCase() === want.toUpperCase());
+    mark(cfg.id, right);
+    updateCounters();
+
+    Array.prototype.forEach.call(slots.querySelectorAll(".tile"), function(t){
+      t.classList.remove("placed");
+      t.classList.add(right ? "ok" : "no");
+      t.disabled = true;
+    });
+    Array.prototype.forEach.call(pool.querySelectorAll(".tile"), function(t){ t.disabled = true; });
+    btnCheck.disabled = true; btnClear.disabled = true;
+
+    if(right){ feedback(fb,"good","Correct.", "You built: <b>"+want+"</b>"); }
+    else { feedback(fb,"bad","Not quite.", "You wrote: "+given+"<br>The correct answer is: <b>"+want+"</b>"); }
+  });
+
+  card.appendChild(slots);
+  card.appendChild(pool);
+  card.appendChild(row);
+  card.appendChild(fb);
+  host.appendChild(card);
+}
+
+function buildWordTiles(sec){
+  var host = document.getElementById("build-sec"+sec);
+  var keyHost = document.getElementById("key-sec"+sec);
+  var num = 1;
+
+  host.appendChild(el("div","instructions","<strong>Part A:</strong> Build the word, letter by letter."));
+  LETTER_TASKS.forEach(function(t){
+    buildTileTask(host, {
+      id:t.id, clue:t.clue,
+      units:t.word.split(""),
+      answer:t.word.split(""),
+      wordMode:false
+    }, num++, sec);
+  });
+
+  host.appendChild(el("div","instructions","<strong>Part B:</strong> Build the everyday expression. Two words are extra. You will not need them."));
+  PHRASE_TASKS.forEach(function(t){
+    buildTileTask(host, {
+      id:t.id, clue:t.clue,
+      units:t.words.concat(t.extra),
+      answer:t.words,
+      wordMode:true
+    }, num++, sec);
+  });
+
+  var html = "<h4>Part A: words</h4><ol>";
+  LETTER_TASKS.forEach(function(t){ html += "<li><b>"+t.word+"</b> - "+t.clue+"</li>"; });
+  html += "</ol><h4>Part B: expressions</h4><ol>";
+  PHRASE_TASKS.forEach(function(t){ html += "<li><b>"+t.words.join(" ")+"</b> - "+t.clue+"</li>"; });
+  html += "</ol><p class='note'>Tip: 'see you then' and 'give me a call' are friendly. 'As soon as possible' and 'sorry for the late reply' are polite enough for a business too.</p>";
+  keyHost.innerHTML = html;
+}
+
+/* ==========================================================================
+   PART G: CLICKABLE HOTSPOTS
+   ========================================================================== */
+function buildTapThePart(sec){
+  var host = document.getElementById("build-sec"+sec);
+  var keyHost = document.getElementById("key-sec"+sec);
+
+  HOTSPOT_TASKS.forEach(function(task, ti){
+    var card = el("div","item-card");
+    cardHead(card, ti+1, "Tap the text", task.title, task.hint);
+
+    /* Draw the text with every part as a tappable hotspot. */
+    var mock = el("div","sms-phone");
+    if(task.mock.type === "sms"){
+      mock.appendChild(mockHeader(task.mock));
+      var body = el("div","sms-body hs-text");
+      task.parts.forEach(function(p){
+        var b = el("button","hs",p.t);
+        b.type = "button";
+        b.dataset.k = p.k;
+        body.appendChild(b);
+        body.appendChild(document.createTextNode(" "));
+      });
+      mock.appendChild(body);
+    } else {
+      var nb = el("div","notice-body hs-text");
+      task.parts.forEach(function(p){
+        var b = el("button","hs",p.t);
+        b.type = "button";
+        b.dataset.k = p.k;
+        if(p.title) b.style.fontWeight = "900";
+        nb.appendChild(b);
+        nb.appendChild(el("div","",""));
+      });
+      mock.appendChild(nb);
+    }
+    card.appendChild(mock);
+
+    /* Question area: one question at a time. */
+    var qLine = el("div","q-line");
+    var fb = el("div","feedback");
+    card.appendChild(qLine);
+    card.appendChild(fb);
+
+    var qi = 0;
+    task.questions.forEach(function(q,i){ reg(task.id+"-"+i, sec); });
+
+    function showQ(){
+      if(qi >= task.questions.length){
+        qLine.innerHTML = "<span class='qn'>Finished.</span> You have answered every question for this text.";
+        Array.prototype.forEach.call(mock.querySelectorAll(".hs"), function(b){ b.disabled = true; });
+        return;
+      }
+      var q = task.questions[qi];
+      qLine.innerHTML = "<span class='qn'>Question "+(qi+1)+" of "+task.questions.length+":</span> "+q.q;
+      Array.prototype.forEach.call(mock.querySelectorAll(".hs"), function(b){
+        b.className = "hs"; b.disabled = false;
+      });
+    }
+
+    mock.addEventListener("click", function(ev){
+      var btn = ev.target.closest(".hs");
+      if(!btn || btn.disabled) return;
+      if(qi >= task.questions.length) return;
+      var q = task.questions[qi];
+      var right = (btn.dataset.k === q.a);
+      mark(task.id+"-"+qi, right);
+
+      Array.prototype.forEach.call(mock.querySelectorAll(".hs"), function(b){ b.disabled = true; });
+      if(right){
+        btn.classList.add("hit");
+        feedback(fb,"good","Correct.", q.ok);
+      } else {
+        btn.classList.add("miss");
+        var target = mock.querySelector("[data-k='"+q.a+"']");
+        if(target) target.classList.add("reveal");
+        feedback(fb,"bad","Not this one.", q.no + " The correct part is now green.");
+      }
+      updateCounters();
+      qi++;
+      setTimeout(function(){
+        fb.classList.remove("show");
+        showQ();
+      }, reducedMotion() ? 600 : 2100);
+    });
+
+    showQ();
+    host.appendChild(card);
+  });
+
+  /* Answer key */
+  var html = "";
+  HOTSPOT_TASKS.forEach(function(task){
+    html += "<h4>"+task.title+"</h4><ol>";
+    task.questions.forEach(function(q){
+      var part = task.parts.filter(function(p){ return p.k === q.a; })[0];
+      html += "<li>"+q.q+"<br><b>"+part.t+"</b></li>";
+    });
+    html += "</ol>";
+  });
+  html += "<p class='note'>Tip: in a business message, the first line says who is writing and the last lines say what you must do. In a notice, the big capital letters give the main news.</p>";
+  keyHost.innerHTML = html;
+}
+
+/* ==========================================================================
+   PART H: TAP TO HIGHLIGHT
+   ========================================================================== */
+function buildFindDetails(sec){
+  var host = document.getElementById("build-sec"+sec);
+  var keyHost = document.getElementById("key-sec"+sec);
+
+  HL_TEXTS.forEach(function(text, ti){
+    var card = el("div","item-card");
+    cardHead(card, ti+1, "Highlight the lines", text.heading,
+      "Tap a line to make it yellow. Tap it again to take the yellow off. Then tap Check my answer.");
+
+    var mock = el("div","sms-phone");
+    if(text.mock.type === "email"){ mock.appendChild(emailHeader(text.mock)); }
+    else { mock.appendChild(mockHeader(text.mock)); }
+
+    var body = el("div","hl-text");
+    text.lines.forEach(function(l){
+      var b = el("button","chunk", l.t);
+      b.type = "button"; b.dataset.k = l.k;
+      body.appendChild(b);
+    });
+    mock.appendChild(body);
+    card.appendChild(mock);
+
+    var qLine = el("div","q-line");
+    var fb = el("div","feedback");
+    var btnCheck = el("button","check-btn","Check my answer");
+    btnCheck.type = "button";
+    var row = el("div","btn-row"); row.appendChild(btnCheck);
+    card.appendChild(qLine);
+    card.appendChild(row);
+    card.appendChild(fb);
+    host.appendChild(card);
+
+    text.tasks.forEach(function(t){ reg(t.id, sec); });
+    var qi = 0;
+
+    function clearMarks(){
+      Array.prototype.forEach.call(body.querySelectorAll(".chunk"), function(b){
+        b.className = "chunk"; b.disabled = false;
+      });
+    }
+    function showQ(){
+      if(qi >= text.tasks.length){
+        qLine.innerHTML = "<span class='qn'>Finished.</span> You have answered every question for this text.";
+        btnCheck.disabled = true;
+        Array.prototype.forEach.call(body.querySelectorAll(".chunk"), function(b){ b.disabled = true; });
+        return;
+      }
+      clearMarks();
+      var t = text.tasks[qi];
+      var howMany = t.a.length === 1 ? "Highlight 1 line." : "Highlight "+t.a.length+" lines.";
+      qLine.innerHTML = "<span class='qn'>Question "+(qi+1)+" of "+text.tasks.length+":</span> "+t.q+
+                        " <br><span style='font-weight:600;font-size:.95rem'>("+howMany+")</span>";
+    }
+
+    body.addEventListener("click", function(ev){
+      var b = ev.target.closest(".chunk");
+      if(!b || b.disabled) return;
+      b.classList.toggle("on");
+    });
+
+    btnCheck.addEventListener("click", function(){
+      if(qi >= text.tasks.length) return;
+      var t = text.tasks[qi];
+      var picked = [];
+      Array.prototype.forEach.call(body.querySelectorAll(".chunk.on"), function(b){ picked.push(b.dataset.k); });
+      if(picked.length === 0){
+        feedback(fb,"info","Nothing highlighted.","Tap a line in the text first, then tap Check my answer.");
+        return;
+      }
+      var right = (picked.length === t.a.length) && picked.every(function(k){ return t.a.indexOf(k) > -1; });
+      mark(t.id, right);
+      updateCounters();
+
+      /* Mark every line: right, wrong or missed. */
+      Array.prototype.forEach.call(body.querySelectorAll(".chunk"), function(b){
+        var k = b.dataset.k;
+        var isAnswer = t.a.indexOf(k) > -1;
+        var isPicked = b.classList.contains("on");
+        b.classList.remove("on");
+        if(isPicked && isAnswer) b.classList.add("right");
+        else if(isPicked && !isAnswer) b.classList.add("wrong");
+        else if(!isPicked && isAnswer) b.classList.add("missed");
+        b.disabled = true;
+      });
+
+      if(right){ feedback(fb,"good","Correct.", t.ok); }
+      else { feedback(fb,"bad","Not quite.", t.no + " The correct lines have a green border."); }
+
+      qi++;
+      setTimeout(function(){ fb.classList.remove("show"); showQ(); }, reducedMotion() ? 800 : 2600);
+    });
+
+    showQ();
+  });
+
+  var html = "";
+  HL_TEXTS.forEach(function(text){
+    html += "<h4>"+text.label+"</h4><ol>";
+    text.tasks.forEach(function(t){
+      var answers = t.a.map(function(k){
+        return text.lines.filter(function(l){ return l.k === k; })[0].t;
+      }).join(" / ");
+      html += "<li>"+t.q+"<br><b>"+answers+"</b></li>";
+    });
+    html += "</ol>";
+  });
+  html += "<p class='note'>Tip: to find a detail fast, look for a number, a day, a time or a dollar sign. An email always ends with two lines: the closing, then the writer's name underneath.</p>";
+  keyHost.innerHTML = html;
+}
+
+/* ==========================================================================
+   PART I: TAP THE GAP WITH POPOVER CHOICES
+   ========================================================================== */
+var POP = { gap:null, task:null, part:null, fb:null };
+
+function buildChooseTheWord(sec){
+  var host = document.getElementById("build-sec"+sec);
+  var keyHost = document.getElementById("key-sec"+sec);
+
+  GAP_TASKS.forEach(function(task, ti){
+    var card = el("div","item-card");
+    cardHead(card, ti+1, "Choose the word", task.title, task.hint);
+    card.appendChild(el("div","clue","<b>Situation:</b> "+task.intro));
+
+    var mock = el("div","sms-phone");
+    if(task.mock.type === "email"){ mock.appendChild(emailHeader(task.mock)); }
+    else { mock.appendChild(mockHeader(task.mock)); }
+
+    var body = el("div","gap-text");
+    task.parts.forEach(function(p){
+      if(typeof p === "string"){
+        /* A newline starts a new line, so an email shows the greeting,
+           the body, the closing and the signature on separate lines. */
+        p.split("\n").forEach(function(bit, bi){
+          if(bi > 0) body.appendChild(el("br"));
+          if(bit) body.appendChild(document.createTextNode(bit));
+        });
+      } else {
+        var gid = task.id + "-" + p.n;
+        reg(gid, sec);
+        var b = el("button","gap","<span class='num'>"+p.n+"</span>?????");
+        b.type = "button";
+        b.dataset.task = task.id;
+        b.dataset.n = p.n;
+        b.setAttribute("aria-label","Gap "+p.n+", choose a word");
+        body.appendChild(b);
+      }
+    });
+    mock.appendChild(body);
+    card.appendChild(mock);
+
+    var fb = el("div","feedback");
+    card.appendChild(fb);
+    host.appendChild(card);
+
+    body.addEventListener("click", function(ev){
+      var g = ev.target.closest(".gap");
+      if(!g || g.disabled) return;
+      openPopover(g, task, fb);
+    });
+  });
+
+  var html = "";
+  GAP_TASKS.forEach(function(task){
+    html += "<h4>"+task.title+"</h4><ol>";
+    task.parts.forEach(function(p){
+      if(typeof p !== "string"){
+        html += "<li><b>"+p.a+"</b> - "+p.why+"</li>";
+      }
+    });
+    html += "</ol>";
+  });
+  html += "<p class='note'>Tip: 'on' goes with days, 'at' goes with clock times, and 'in' goes with months and years. Time words such as yesterday, right now and tomorrow tell you which verb form to use.</p>";
+  keyHost.innerHTML = html;
+}
+
+/* Open the small choice box under the gap the learner tapped. */
+function openPopover(gapEl, task, fb){
+  var n = parseInt(gapEl.dataset.n, 10);
+  var part = task.parts.filter(function(p){ return typeof p !== "string" && p.n === n; })[0];
+  POP.gap = gapEl; POP.task = task; POP.part = part; POP.fb = fb;
+
+  var opts = $("#popOpts");
+  opts.innerHTML = "";
+  shuffle(part.opts).forEach(function(word){
+    var b = el("button","pop-opt", word);
+    b.type = "button";
+    b.addEventListener("click", function(){ choosePop(word); });
+    opts.appendChild(b);
+  });
+  $("#popTitle").textContent = "Gap " + n + ": choose the best word";
+
+  var pop = $("#popover");
+  var veil = $("#popVeil");
+  pop.classList.add("open"); veil.classList.add("open");
+
+  /* Place the box near the gap, but always inside the screen. */
+  var r = gapEl.getBoundingClientRect();
+  var pw = pop.offsetWidth, ph = pop.offsetHeight;
+  var left = Math.min(Math.max(8, r.left + r.width/2 - pw/2), window.innerWidth - pw - 8);
+  var top  = r.bottom + 10;
+  if(top + ph > window.innerHeight - 8){ top = Math.max(8, r.top - ph - 10); }
+  pop.style.left = left + "px";
+  pop.style.top  = top + "px";
+}
+function closePopover(){
+  $("#popover").classList.remove("open");
+  $("#popVeil").classList.remove("open");
+  POP.gap = null;
+}
+function choosePop(word){
+  var g = POP.gap, part = POP.part, task = POP.task, fb = POP.fb;
+  if(!g) return;
+  var right = (word === part.a);
+  mark(task.id + "-" + part.n, right);
+  updateCounters();
+
+  /* The gap always ends up showing the correct word, so the learner can
+     read the finished text. The colour shows if they chose it themselves. */
+  g.innerHTML = "<span class='num'>"+part.n+"</span>"+ part.a;
+  g.classList.remove("filled-ok","filled-no");
+  g.classList.add(right ? "filled-ok" : "filled-no");
+  g.disabled = true;
+
+  if(right){
+    feedback(fb,"good","Gap "+part.n+" is correct.", part.why);
+  } else {
+    feedback(fb,"bad","Gap "+part.n+": you chose '"+word+"'.",
+             "The correct word is <b>"+part.a+"</b>. "+part.why);
+  }
+  closePopover();
+}
+
+/* ==========================================================================
+   PART J: TEXT MESSAGE SIMULATOR
+   The learner chooses a reply. The conversation then grows on the screen.
+   ========================================================================== */
+function buildTextMessageLive(sec){
+  var host = document.getElementById("build-sec"+sec);
+  var keyHost = document.getElementById("key-sec"+sec);
+
+  SMS_THREADS.forEach(function(th, ti){
+    reg(th.id, sec);
+
+    var card = el("div","item-card");
+    cardHead(card, ti+1, "Choose the reply", "Message from "+th.who,
+      "Ask yourself: who sent this? A business or a college needs a more polite reply than a friend does. Some messages need no reply at all.");
+
+    var mock = el("div","sms-phone");
+    mock.appendChild(mockHeader(th));
+    var thread = el("div","thread");
+    thread.appendChild(el("div","sms-bubble", th.incoming));
+    mock.appendChild(thread);
+    card.appendChild(mock);
+
+    card.appendChild(el("div","q-line","What is the best thing to do?"));
+
+    var opts = el("div","options");
+    var fb = el("div","feedback");
+
+    th.options.forEach(function(o, oi){
+      var b = el("button","opt-btn", o.t);
+      b.type = "button";
+      b.addEventListener("click", function(){
+        if(b.disabled) return;
+        Array.prototype.forEach.call(opts.querySelectorAll(".opt-btn"), function(x){ x.disabled = true; });
+        mark(th.id, o.correct);
+        updateCounters();
+        b.classList.add(o.correct ? "correct" : "incorrect");
+        if(!o.correct){
+          th.options.forEach(function(oo, ii){
+            if(oo.correct) opts.children[ii].classList.add("correct");
+          });
+          feedback(fb,"bad","Not the best choice.", o.fb + " The green answer is the best one.");
+        } else {
+          feedback(fb,"good","Good choice.", o.fb);
+          /* Grow the live conversation. */
+          if(o.system){
+            thread.appendChild(el("div","sms-bubble system-note", o.system));
+          } else {
+            thread.appendChild(el("div","sms-bubble from-me", o.t));
+            if(o.reply){
+              var wait = reducedMotion() ? 10 : 700;
+              setTimeout(function(){
+                var typing = el("div","typing","<span></span><span></span><span></span>");
+                thread.appendChild(typing);
+                setTimeout(function(){
+                  if(typing.parentNode) thread.removeChild(typing);
+                  thread.appendChild(el("div","sms-bubble", o.reply));
+                }, reducedMotion() ? 10 : 1200);
+              }, wait);
+            }
+          }
+        }
+      });
+      opts.appendChild(b);
+    });
+
+    card.appendChild(opts);
+    card.appendChild(fb);
+    host.appendChild(card);
+  });
+
+  /* Writing task: the learner types their own reply. */
+  buildWritingTask(host, SMS_WRITE, SMS_THREADS.length + 1, {
+    heading:"Write your own reply",
+    mock:{type:"sms", who:SMS_WRITE.who, sub:SMS_WRITE.sub, initials:SMS_WRITE.initials, biz:true},
+    incoming:SMS_WRITE.incoming,
+    placeholder:"Type your reply here..."
+  });
+
+  var html = "<h4>Best answers</h4><ol>";
+  SMS_THREADS.forEach(function(th){
+    var best = th.options.filter(function(o){ return o.correct; })[0];
+    html += "<li><b>"+th.who+":</b> "+best.t+"<br><span class='note'>"+best.fb+"</span></li>";
+  });
+  html += "</ol><h4>Model answer for the writing task</h4><p>"+SMS_WRITE.model.join(" ")+"</p>";
+  html += "<p class='note'>Tip: to a business, always give your name and answer the question. To a friend or a neighbour, a short friendly reply is enough. To a scam message, send nothing.</p>";
+  keyHost.innerHTML = html;
+}
+
+/* ==========================================================================
+   PART K: SHARED WRITING TASK BUILDER (used by Parts 6 and 7)
+   Writing is not marked automatically. The learner checks their own work,
+   then compares it with a model answer.
+   ========================================================================== */
+function buildWritingTask(host, cfg, num, extra){
+  var card = el("div","item-card");
+  cardHead(card, num, "Write your own", extra.heading, null);
+
+  if(extra.mock){
+    var mock = el("div","sms-phone");
+    mock.appendChild(mockHeader(extra.mock));
+    var thread = el("div","thread");
+    thread.appendChild(el("div","sms-bubble", extra.incoming));
+    mock.appendChild(thread);
+    card.appendChild(mock);
+  }
+
+  card.appendChild(el("div","clue","<b>Your task:</b> "+cfg.prompt));
+
+  var ta = el("textarea","answer-text");
+  ta.placeholder = extra.placeholder || "Write here...";
+  ta.setAttribute("aria-label", extra.heading);
+  card.appendChild(ta);
+
+  card.appendChild(el("div","q-line","Now read your own writing again. Tick every box that is true."));
+
+  var ul = el("ul","check-list");
+  cfg.checks.forEach(function(c, i){
+    var li = el("li");
+    li.innerHTML = "<label><input type='checkbox' data-c='"+i+"'><span>"+c+"</span></label>";
+    ul.appendChild(li);
+  });
+  card.appendChild(ul);
+
+  var fb = el("div","feedback");
+  var model = el("div","model");
+  model.innerHTML = "<h4>Model answer</h4>" + cfg.model.map(function(p){ return "<p>"+p+"</p>"; }).join("");
+
+  var btnDone = el("button","check-btn","I have finished. Show the model answer.");
+  btnDone.type = "button";
+  btnDone.addEventListener("click", function(){
+    var words = ta.value.trim().split(/\s+/).filter(Boolean).length;
+    if(words < 8){
+      feedback(fb,"info","Keep writing.","Write at least one or two more sentences, then tap this button again.");
+      return;
+    }
+    var ticked = ul.querySelectorAll("input:checked").length;
+    STATE.writing[cfg.id] = true;
+    model.classList.add("show");
+    if(ticked === cfg.checks.length){
+      feedback(fb,"good","Well done.","You wrote "+words+" words and you checked every point. Now compare your writing with the model answer below. They do not need to be the same.");
+    } else {
+      feedback(fb,"info","Almost there.","You wrote "+words+" words and you ticked "+ticked+" of "+cfg.checks.length+" points. Look at the boxes you did not tick, then improve your writing.");
+    }
+    updateProgress();
+  });
+
+  var row = el("div","btn-row"); row.appendChild(btnDone);
+  card.appendChild(row);
+  card.appendChild(fb);
+  card.appendChild(model);
+  host.appendChild(card);
+}
+
+/* ==========================================================================
+   PART L: EMAIL SIMULATOR
+   Task 1: find the problems.  Task 2: put the email in order.
+   Task 3: write your own email and check it.
+   ========================================================================== */
+function buildEmailLive(sec){
+  var host = document.getElementById("build-sec"+sec);
+  var keyHost = document.getElementById("key-sec"+sec);
+  var badCount = EMAIL_BAD.chunks.filter(function(c){ return c.bad; }).length;
+
+  /* ---- Task 1: find the problems ---- */
+  EMAIL_BAD.chunks.forEach(function(c){ if(c.bad) reg(EMAIL_BAD.id+"-"+c.k, sec); });
+
+  var cardA = el("div","item-card");
+  cardHead(cardA, 1, "Check and fix", "Find the problems",
+    "Petra wrote this email to Greenway Medical Centre. There are "+badCount+" problems. Tap each problem, then tap Check my answer.");
+
+  var mockA = el("div","sms-phone");
+  var barA = el("div","sms-header");
+  barA.innerHTML = "<div class='sms-avatar biz'>@</div><div><div class='sms-name'>Email</div><div class='sms-sub'>Draft, not sent</div></div>";
+  mockA.appendChild(barA);
+  var bodyA = el("div","hl-text");
+  EMAIL_BAD.chunks.forEach(function(c){
+    var b = el("button","chunk", (c.label ? "<b>"+c.label+"</b> " : "") + c.t);
+    b.type = "button"; b.dataset.k = c.k;
+    bodyA.appendChild(b);
+  });
+  mockA.appendChild(bodyA);
+  cardA.appendChild(mockA);
+
+  var fbA = el("div","feedback");
+  var btnA = el("button","check-btn","Check my answer");
+  btnA.type = "button";
+  var rowA = el("div","btn-row"); rowA.appendChild(btnA);
+  cardA.appendChild(rowA);
+  cardA.appendChild(fbA);
+  host.appendChild(cardA);
+
+  bodyA.addEventListener("click", function(ev){
+    var b = ev.target.closest(".chunk");
+    if(!b || b.disabled) return;
+    b.classList.toggle("on");
+  });
+
+  btnA.addEventListener("click", function(){
+    if(btnA.disabled) return;
+    var picked = [];
+    Array.prototype.forEach.call(bodyA.querySelectorAll(".chunk.on"), function(b){ picked.push(b.dataset.k); });
+    if(picked.length === 0){
+      feedback(fbA,"info","Nothing selected.","Tap the parts of the email that have a problem.");
+      return;
+    }
+    var found = 0, wrongPicks = 0, details = "";
+    EMAIL_BAD.chunks.forEach(function(c){
+      var b = bodyA.querySelector("[data-k='"+c.k+"']");
+      var isPicked = picked.indexOf(c.k) > -1;
+      b.classList.remove("on");
+      if(c.bad){
+        mark(EMAIL_BAD.id+"-"+c.k, isPicked);
+        if(isPicked){ found++; b.classList.add("right"); }
+        else { b.classList.add("missed"); }
+        details += "<br><b>"+ (c.label ? c.label+" " : "") + c.t + "</b>: " + c.why;
+      } else if(isPicked){
+        wrongPicks++;
+        b.classList.add("wrong");
+      }
+      b.disabled = true;
+    });
+    btnA.disabled = true;
+    updateCounters();
+
+    var head = "You found " + found + " of " + badCount + " problems.";
+    var kind = (found === badCount && wrongPicks === 0) ? "good" : (found >= 3 ? "info" : "bad");
+    var extra = wrongPicks > 0 ? " You also chose "+wrongPicks+" part(s) that were fine (in red)." : "";
+    feedback(fbA, kind, head, extra + details);
+  });
+
+  /* ---- Task 2: put the email in the right order ---- */
+  EMAIL_ORDER.pieces.forEach(function(p,i){ reg(EMAIL_ORDER.id+"-"+i, sec); });
+
+  var cardB = el("div","item-card");
+  cardHead(cardB, 2, "Put in order", "Put the email in order",
+    "Petra wrote the email again, but the parts are mixed up. Tap the parts in the correct order, from the first line to the last line.");
+
+  var slotsB = el("div","slots");
+  slotsB.style.flexDirection = "column";
+  slotsB.style.alignItems = "stretch";
+  var poolB = el("div","hl-text");
+  poolB.style.padding = "0";
+  var fbB = el("div","feedback");
+  var stepB = el("div","q-line");
+  cardB.appendChild(stepB);
+  cardB.appendChild(slotsB);
+  cardB.appendChild(poolB);
+  cardB.appendChild(fbB);
+  host.appendChild(cardB);
+
+  var posB = 0;
+  var poolButtons = {};
+  shuffle(EMAIL_ORDER.pieces).forEach(function(p){
+    var b = el("button","chunk", p.t);
+    b.type = "button"; b.dataset.k = p.k;
+    poolB.appendChild(b);
+    poolButtons[p.k] = b;
+  });
+
+  function stepText(){
+    if(posB >= EMAIL_ORDER.pieces.length){
+      stepB.innerHTML = "<span class='qn'>Finished.</span> The email is now in the correct order.";
+      return;
+    }
+    stepB.innerHTML = "<span class='qn'>Step "+(posB+1)+" of "+EMAIL_ORDER.pieces.length+":</span> Tap the part that comes next. (You need the <b>"+EMAIL_ORDER.pieces[posB].role.toLowerCase()+"</b>.)";
+  }
+  stepText();
+
+  poolB.addEventListener("click", function(ev){
+    var b = ev.target.closest(".chunk");
+    if(!b || b.disabled) return;
+    if(posB >= EMAIL_ORDER.pieces.length) return;
+
+    var want = EMAIL_ORDER.pieces[posB];
+    var right = (b.dataset.k === want.k);
+    mark(EMAIL_ORDER.id+"-"+posB, right);
+    updateCounters();
+
+    var moved = poolButtons[want.k];
+    if(right){
+      b.classList.add("right");
+      feedback(fbB,"good","Correct.", "<b>"+want.role+"</b> comes here.");
+    } else {
+      /* Flash the wrong choice red, but keep it in the pool: it is still
+         needed later, in its own place in the email. */
+      b.classList.add("wrong");
+      moved.classList.add("missed");
+      setTimeout(function(){
+        if(!b.disabled) b.classList.remove("wrong");
+      }, reducedMotion() ? 10 : 900);
+      feedback(fbB,"bad","Not this one.", "Position "+(posB+1)+" needs the <b>"+want.role.toLowerCase()+"</b>: \""+want.t+"\"");
+    }
+    /* Move the correct piece into the answer strip either way. */
+    setTimeout(function(){
+      moved.disabled = true;
+      moved.className = "chunk right";
+      slotsB.appendChild(moved);
+      posB++;
+      stepText();
+    }, reducedMotion() ? 10 : 500);
+  });
+
+  /* ---- Task 3: write your own email ---- */
+  buildWritingTask(host, EMAIL_WRITE, 3, {
+    heading:"Write your own email",
+    placeholder:"Subject: ...\n\nHello ...,\n\n...\n\nThank you,\nYour name"
+  });
+
+  /* ---- Answer key ---- */
+  var html = "<h4>Task 1: the "+badCount+" problems</h4><ol>";
+  EMAIL_BAD.chunks.forEach(function(c){
+    if(c.bad) html += "<li><b>"+(c.label ? c.label+" " : "")+c.t+"</b> - "+c.why+"</li>";
+  });
+  html += "</ol><h4>Task 2: the correct order</h4><ol>";
+  EMAIL_ORDER.pieces.forEach(function(p){ html += "<li>"+p.role+": "+p.t+"</li>"; });
+  html += "</ol><h4>Task 3: model email</h4><p>"+EMAIL_WRITE.model.join("<br>")+"</p>";
+  html += "<p class='note'>Tip: before you send an email, read it once more. Check the subject line, the capital letters and the full stops. Finish with the closing on one line and your name on the next line.</p>";
+  keyHost.innerHTML = html;
+}
+
+/* ==========================================================================
+   PART M: PROGRESS, COUNTERS AND NAVIGATION
+   Everything below counts the parts from the PARTS array, so the order and
+   the number of parts can change without touching this code.
+   ========================================================================== */
+function updateProgress(){
+  var t = totalScore();
+  var pct = t.tot ? Math.round(t.ans / t.tot * 100) : 0;
+  $("#progressFill").style.width = pct + "%";
+  $("#progressText").textContent = t.ans + " of " + t.tot + " answered";
+  drawDots();
+}
+function updateCounters(){
+  for(var s=1; s<=NPARTS; s++){
+    var box = document.getElementById("c-sec"+s);
+    if(!box) continue;
+    var sc = sectionScore(s);
+    box.textContent = "This part: " + sc.got + " of " + sc.tot + " correct";
+  }
+  updateProgress();
+}
+function drawDots(){
+  var host = $("#dotsRow");
+  if(!host.dataset.built){
+    for(var s=1; s<=NPARTS; s++){
+      (function(n){
+        var b = el("button","dot-btn", "Part "+n);
+        b.type = "button";
+        b.setAttribute("aria-label","Go to part "+n);
+        b.addEventListener("click", function(){ goTo(n); });
+        host.appendChild(b);
+      })(s);
+    }
+    var r = el("button","dot-btn","Results");
+    r.type = "button";
+    r.setAttribute("aria-label","Go to your results");
+    r.addEventListener("click", function(){ goTo(RESULTS_SEC); });
+    host.appendChild(r);
+    host.dataset.built = "1";
+  }
+  Array.prototype.forEach.call(host.children, function(b, i){
+    var n = i + 1;
+    b.classList.remove("done","active");
+    if(n <= NPARTS){
+      var sc = sectionScore(n);
+      var answered = 0;
+      for(var k in STATE.items){ if(STATE.items[k].sec === n && STATE.items[k].correct !== null) answered++; }
+      if(sc.tot > 0 && answered === sc.tot) b.classList.add("done");
+    }
+    if(n === STATE.current) b.classList.add("active");
+  });
+}
+function goTo(n){
+  STATE.current = n;
+  for(var s=1; s<=RESULTS_SEC; s++){
+    var p = document.getElementById("sec"+s);
+    if(p) p.classList.toggle("visible", s === n);
+  }
+  if(n === RESULTS_SEC) buildResults();
+  drawDots();
+  window.scrollTo({top:0, behavior: reducedMotion() ? "auto" : "smooth"});
+}
+
+/* Clear one part and build it again, so a learner can have another go. */
+var BUILDERS = {};
+function retryPart(n){
+  for(var k in STATE.items){
+    if(STATE.items[k].sec === n) delete STATE.items[k];
+  }
+  STATE.sectionTotals[n] = 0;
+  (PARTS[n-1].writing || []).forEach(function(id){ delete STATE.writing[id]; });
+  var host = document.getElementById("build-sec"+n);
+  var key  = document.getElementById("key-sec"+n);
+  if(host) host.innerHTML = "";
+  if(key)  key.innerHTML  = "";
+  if(BUILDERS[n]) BUILDERS[n]();
+  applyLiveRegions();
+  updateCounters();
+  window.scrollTo({top:0, behavior: reducedMotion() ? "auto" : "smooth"});
+}
+
+/* ==========================================================================
+   PART N: RESULTS AND SIMPLE FEEDBACK
+   ========================================================================== */
+function buildResults(){
+  var t = totalScore();
+  var pct = t.tot ? Math.round(t.got / t.tot * 100) : 0;
+  $("#resBig").textContent = t.got + " / " + t.tot;
+  $("#resPct").textContent = pct + "% correct";
+
+  /* Simple performance band. */
+  var cls = "", head = "", msg = "";
+  if(pct >= 85){ cls="b-top";  head="Excellent work"; msg="You read carefully and you choose the right words. You are ready for longer messages and emails."; }
+  else if(pct >= 70){ cls="b-good"; head="Good work"; msg="You understand most of these texts. Look again at the questions you missed, then try this tool one more time."; }
+  else if(pct >= 50){ cls="b-mid";  head="You are getting there"; msg="You can find the main idea. Now practise the small details: days, times, prices and polite words."; }
+  else { cls="b-low"; head="Keep practising"; msg="Read each text slowly, one line at a time. Open the answer key at the end of every part. Then try again."; }
+
+  var unanswered = t.tot - t.ans;
+  if(unanswered > 0){
+    msg += " You still have " + unanswered + " question(s) with no answer. Go back and finish them for a full score.";
+  }
+  $("#resBand").innerHTML = "<div class='band "+cls+"'><h3>"+head+"</h3><p style='margin:0'>"+msg+"</p></div>";
+
+  /* Per-part breakdown. */
+  var rows = "";
+  for(var s=1; s<=NPARTS; s++){
+    var sc = sectionScore(s);
+    rows += "<div><span>"+partName(s)+"</span><span>"+sc.got+" / "+sc.tot+"</span></div>";
+  }
+  var wDone = Object.keys(STATE.writing).length;
+  rows += "<div><span>Writing tasks done (not marked)</span><span>"+wDone+" / "+WRITING_TOTAL+"</span></div>";
+  $("#resTable").innerHTML = rows;
+
+  /* Advice: name the weakest parts. */
+  var weak = [];
+  for(var s2=1; s2<=NPARTS; s2++){
+    var sc2 = sectionScore(s2);
+    if(sc2.tot > 0 && (sc2.got / sc2.tot) < 0.7) weak.push(partName(s2));
+  }
+  var advice = "";
+  if(weak.length === 0){
+    advice = "<p>You did well in every part. Next step: write one real message and one real email this week, and read them again before you send them.</p>";
+  } else {
+    advice = "<p>Practise these parts again:</p><ul>";
+    weak.forEach(function(w){ advice += "<li><b>"+w+"</b></li>"; });
+    advice += "</ul><p>Open the answer key in each part first. Read the tip at the bottom of the key.</p>";
+  }
+  if(wDone < WRITING_TOTAL){
+    advice += "<p>You have not finished both writing tasks yet. Writing your own message is the best practice of all.</p>";
+  }
+  $("#resAdvice").innerHTML = advice;
+}
+
+/* ==========================================================================
+   PART O: START THE APP
+   ========================================================================== */
+function applyLiveRegions(){
+  /* Screen readers: read out the feedback boxes and the new questions. */
+  Array.prototype.forEach.call(document.querySelectorAll(".feedback"), function(n){
+    n.setAttribute("role","status");
+    n.setAttribute("aria-live","polite");
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".q-line, .live-counter"), function(n){
+    n.setAttribute("aria-live","polite");
+  });
+}
+
+function boot(){
+  PARTS.forEach(function(part, i){
+    BUILDERS[i+1] = function(){ part.build(i+1); };
+  });
+  for(var s=1; s<=NPARTS; s++){ BUILDERS[s](); }
+
+  /* Part navigation buttons. */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-go]"), function(b){
+    b.addEventListener("click", function(){ goTo(parseInt(b.dataset.go,10)); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-retry]"), function(b){
+    b.addEventListener("click", function(){ retryPart(parseInt(b.dataset.retry,10)); });
+  });
+
+  /* Popover close handlers. */
+  $("#popClose").addEventListener("click", closePopover);
+  $("#popVeil").addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  window.addEventListener("resize", closePopover);
+
+  /* Start again. */
+  $("#btnRestart").addEventListener("click", function(){ location.reload(); });
+
+  applyLiveRegions();
+  updateCounters();
+  drawDots();
+}
+document.addEventListener("DOMContentLoaded", boot);
+</script>
+</body>
+</html>
